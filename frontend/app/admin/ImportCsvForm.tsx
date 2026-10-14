@@ -29,7 +29,7 @@ function parseCsv(text: string): CsvRow[] {
   const pointsIndex = findIndex(headers, 'points', 'Points', 'Score');
 
   if (rankIndex === -1 || pseudoIndex === -1 || pointsIndex === -1) {
-    throw new Error('Format CSV non reconnu. V\u00e9rifiez les en-t\u00eates.');
+    throw new Error('Format CSV non reconnu. Vérifiez les en-têtes.');
   }
 
   return lines.slice(1).map((line) => {
@@ -62,7 +62,10 @@ export default function ImportCsvForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [importStatus, setImportStatus] = useState<ImportStatus>('idle');
   const [message, setMessage] = useState('');
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [progress, setProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
   const [fileName, setFileName] = useState('');
 
   function notify(msg: string, status: ImportStatus) {
@@ -77,7 +80,7 @@ export default function ImportCsvForm() {
     const file = fileInput.files?.[0];
 
     if (!file) {
-      notify('Aucun fichier s\u00e9lectionn\u00e9.', 'error');
+      notify('Aucun fichier sélectionné.', 'error');
       return;
     }
 
@@ -86,8 +89,12 @@ export default function ImportCsvForm() {
     setProgress(null);
 
     try {
-      const platform = (form.elements.namedItem('platform') as HTMLSelectElement).value as Platform;
-      const timeControl = (form.elements.namedItem('timeControl') as HTMLSelectElement).value as TimeControl;
+      const platform = (
+        form.elements.namedItem('platform') as HTMLSelectElement
+      ).value as Platform;
+      const timeControl = (
+        form.elements.namedItem('timeControl') as HTMLSelectElement
+      ).value as TimeControl;
       const name = (form.elements.namedItem('name') as HTMLInputElement).value;
       const date = (form.elements.namedItem('date') as HTMLInputElement).value;
 
@@ -96,7 +103,7 @@ export default function ImportCsvForm() {
         body: JSON.stringify({ name, platform, timeControl, date }),
       });
       if (!tournamentRes.ok) {
-        notify('Erreur lors de la cr\u00e9ation du tournoi.', 'error');
+        notify('Erreur lors de la création du tournoi.', 'error');
         return;
       }
       const tournament = (await tournamentRes.json()) as { id: number };
@@ -129,23 +136,32 @@ export default function ImportCsvForm() {
             }),
           });
           if (!createRes.ok) {
-            notify(`Erreur lors de la cr\u00e9ation du membre "${row.pseudo}".`, 'error');
+            notify(
+              `Erreur lors de la création du membre "${row.pseudo}".`,
+              'error'
+            );
             return;
           }
           member = (await createRes.json()) as Member;
           members.push(member);
         }
 
-        const resultRes = await apiFetch(`/tournaments/${tournament.id}/results`, {
-          method: 'POST',
-          body: JSON.stringify({
-            memberId: member.id,
-            points: row.points,
-            rank: row.rank,
-          }),
-        });
+        const resultRes = await apiFetch(
+          `/tournaments/${tournament.id}/results`,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              memberId: member.id,
+              points: row.points,
+              rank: row.rank,
+            }),
+          }
+        );
         if (!resultRes.ok) {
-          notify(`Erreur lors de l'ajout du r\u00e9sultat pour "${row.pseudo}".`, 'error');
+          notify(
+            `Erreur lors de l'ajout du résultat pour "${row.pseudo}".`,
+            'error'
+          );
           return;
         }
 
@@ -153,7 +169,7 @@ export default function ImportCsvForm() {
       }
 
       notify(
-        `Import termin\u00e9 \u2014 ${rows.length} r\u00e9sultat${rows.length > 1 ? 's' : ''} import\u00e9${rows.length > 1 ? 's' : ''}.`,
+        `Import terminé — ${rows.length} résultat${rows.length > 1 ? 's' : ''} importé${rows.length > 1 ? 's' : ''}.`,
         'success'
       );
       setFileName('');
@@ -175,15 +191,18 @@ export default function ImportCsvForm() {
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-surface p-4">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-          Formats accept\u00e9s
+          Formats acceptés
         </p>
         <div className="grid gap-2 sm:grid-cols-3">
           {[
-            ['G\u00e9n\u00e9rique', 'rank, pseudo, points'],
+            ['Générique', 'rank, pseudo, points'],
             ['Lichess', 'Rank, Username, Points'],
             ['Chess.com', 'Rk, Username, Score'],
           ].map(([label, cols]) => (
-            <div key={label} className="rounded-lg border border-border bg-white px-3 py-2">
+            <div
+              key={label}
+              className="rounded-lg border border-border bg-white px-3 py-2"
+            >
               <p className="text-xs font-medium text-gray-700">{label}</p>
               <code className="text-[11px] text-muted">{cols}</code>
             </div>
@@ -192,15 +211,32 @@ export default function ImportCsvForm() {
       </div>
 
       <form ref={formRef} onSubmit={importCsv} className="space-y-4">
-        <Input id="ic-name" name="name" label="Nom du tournoi" placeholder="Blitz du dimanche #12" required disabled={isLoading} />
+        <Input
+          id="ic-name"
+          name="name"
+          label="Nom du tournoi"
+          placeholder="Blitz du dimanche #12"
+          required
+          disabled={isLoading}
+        />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Select id="ic-platform" name="platform" label="Plateforme" disabled={isLoading}>
+          <Select
+            id="ic-platform"
+            name="platform"
+            label="Plateforme"
+            disabled={isLoading}
+          >
             <option value="LICHESS">Lichess</option>
             <option value="CHESSCOM">Chess.com</option>
-            <option value="OTHER">Autre / CSV g\u00e9n\u00e9rique</option>
+            <option value="OTHER">Autre / CSV générique</option>
           </Select>
-          <Select id="ic-timeControl" name="timeControl" label="Cadence" disabled={isLoading}>
+          <Select
+            id="ic-timeControl"
+            name="timeControl"
+            label="Cadence"
+            disabled={isLoading}
+          >
             <option value="BULLET">Bullet</option>
             <option value="BLITZ">Blitz</option>
             <option value="RAPID">Rapide</option>
@@ -208,17 +244,26 @@ export default function ImportCsvForm() {
           </Select>
         </div>
 
-        <Input id="ic-date" name="date" type="date" label="Date du tournoi" required disabled={isLoading} />
+        <Input
+          id="ic-date"
+          name="date"
+          type="date"
+          label="Date du tournoi"
+          required
+          disabled={isLoading}
+        />
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="ic-csv" className="text-xs font-medium text-gray-600">Fichier CSV</label>
+          <label htmlFor="ic-csv" className="text-xs font-medium text-gray-600">
+            Fichier CSV
+          </label>
           <label
             htmlFor="ic-csv"
             className={`flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-white px-4 py-3 text-sm transition hover:border-brand ${isLoading ? 'pointer-events-none opacity-60' : ''}`}
           >
-            <span className="text-lg">\ud83d\udcc2</span>
+            <span className="text-lg">📂</span>
             <span className={fileName ? 'text-gray-900' : 'text-muted'}>
-              {fileName || 'Choisir un fichier .csv\u2026'}
+              {fileName || 'Choisir un fichier .csv…'}
             </span>
             {fileName && (
               <button
@@ -229,12 +274,14 @@ export default function ImportCsvForm() {
                   ev.preventDefault();
                   setFileName('');
                   if (formRef.current) {
-                    const fi = formRef.current.elements.namedItem('csv') as HTMLInputElement;
+                    const fi = formRef.current.elements.namedItem(
+                      'csv'
+                    ) as HTMLInputElement;
                     fi.value = '';
                   }
                 }}
               >
-                \u2715
+                ✕
               </button>
             )}
           </label>
@@ -253,19 +300,24 @@ export default function ImportCsvForm() {
         {isLoading && progress && (
           <div>
             <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
+              <div
+                className="h-full rounded-full bg-brand transition-all"
+                style={{ width: `${pct}%` }}
+              />
             </div>
             <p className="mt-1.5 text-xs text-muted">
-              {progress.done} / {progress.total} r\u00e9sultats import\u00e9s\u2026
+              {progress.done} / {progress.total} résultats importés…
             </p>
           </div>
         )}
 
-        {importStatus === 'success' && <Alert type="success" message={message} />}
+        {importStatus === 'success' && (
+          <Alert type="success" message={message} />
+        )}
         {importStatus === 'error' && <Alert type="error" message={message} />}
 
         <Button type="submit" loading={isLoading}>
-          {isLoading ? 'Import en cours\u2026' : '\u2191 Importer le fichier'}
+          {isLoading ? 'Import en cours…' : '↑ Importer le fichier'}
         </Button>
       </form>
     </div>

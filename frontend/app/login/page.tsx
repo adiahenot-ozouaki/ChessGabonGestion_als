@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 import { Logo } from '@/components/Logo';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { BASE_URL } from '@/lib/api';
+import { toast } from '@/lib/toast';
 
 type Status = 'idle' | 'loading' | 'error';
 
@@ -22,13 +22,11 @@ export default function LoginPage() {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>('idle');
-  const [message, setMessage] = useState('');
   const [showPwd, setShowPwd] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus('loading');
-    setMessage('');
     try {
       const res = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
@@ -39,21 +37,22 @@ export default function LoginPage() {
         }),
       });
       if (res.status === 401) {
-        setMessage('Email ou mot de passe incorrect.');
+        toast.error('Email ou mot de passe incorrect.');
         setStatus('error');
         return;
       }
       if (!res.ok) {
-        setMessage(`Erreur serveur (${res.status}). Réessayez plus tard.`);
+        toast.error(`Erreur serveur (${res.status}). Réessayez plus tard.`);
         setStatus('error');
         return;
       }
       const data = (await res.json()) as LoginResponse;
       localStorage.setItem('token', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
+      toast.success('Connexion réussie');
       router.push('/admin');
     } catch {
-      setMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
+      toast.error('Impossible de contacter le serveur. Vérifiez votre connexion.');
       setStatus('error');
     }
   }
@@ -118,7 +117,6 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-          {status === 'error' && <Alert type="error" message={message} />}
           <Button type="submit" loading={isLoading} className="w-full" size="lg">
             {isLoading ? 'Connexion…' : 'Se connecter'}
           </Button>

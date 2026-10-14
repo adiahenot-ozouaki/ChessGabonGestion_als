@@ -158,7 +158,11 @@ export default function TournamentList() {
       )}
 
       {tournaments.length === 0 ? (
-        <EmptyState message="Aucun tournoi enregistré." />
+        <EmptyState
+          variant="empty"
+          title="Aucun tournoi"
+          message="Créez un tournoi ci-dessus pour commencer le suivi des résultats."
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[640px] text-left text-sm">
@@ -179,8 +183,8 @@ export default function TournamentList() {
                   key={t.id}
                   className={
                     editing?.id === t.id
-                      ? 'bg-brand-light/40'
-                      : 'hover:bg-gray-50/80'
+                      ? 'bg-brand-light/50 shadow-[inset_3px_0_0_var(--color-brand)]'
+                      : 'table-row-interactive'
                   }
                 >
                   <td className="px-3 py-2.5 text-xs text-muted">{t.id}</td>

@@ -11,6 +11,40 @@ import type { Member, Platform, TimeControl } from '@/lib/types';
 type CsvRow = { rank: number; pseudo: string; points: number };
 type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
 
+'use client';
+
+import { useState, useRef } from 'react';
+
+/* ─── Constants ──────────────────────────────────────────────── */
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const GREEN = '#009E60';
+
+/* ─── Types ──────────────────────────────────────────────────── */
+
+type CsvRow = {
+  rank: number;
+  pseudo: string;
+  points: number;
+};
+
+interface Member {
+  id: number;
+  pseudo: string;
+  lichess?: string;
+  chesscom?: string;
+}
+
+interface Tournament {
+  id: number;
+}
+
+type Platform = 'LICHESS' | 'CHESSCOM' | 'OTHER';
+type TimeControl = 'BULLET' | 'BLITZ' | 'RAPID' | 'CLASSICAL';
+type ImportStatus = 'idle' | 'loading' | 'success' | 'error';
+
+/* ─── CSV parser ─────────────────────────────────────────────── */
+
 function findIndex(headers: string[], ...candidates: string[]): number {
   for (const c of candidates) {
     const i = headers.indexOf(c);

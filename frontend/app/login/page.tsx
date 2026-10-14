@@ -11,6 +11,16 @@ import { BASE_URL } from '@/lib/api';
 import { toast } from '@/lib/toast';
 
 type Status = 'idle' | 'loading' | 'error';
+'use client';
+
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const GREEN  = '#009E60';
+const GREEN_DARK = '#007A4A';
+
+/* ─── Types ────────────────────────────────────────────────── */
 
 interface LoginResponse {
   accessToken: string;

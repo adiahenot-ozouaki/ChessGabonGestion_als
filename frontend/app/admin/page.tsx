@@ -40,6 +40,47 @@ type SortColumn = keyof Pick<
   'id' | 'pseudo' | 'firstName' | 'lastName' | 'lichess' | 'chesscom'
 >;
 type SortDirection = 'asc' | 'desc';
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import TournamentForm from './TournamentForm';
+import ImportCsvForm from './ImportCsvForm';
+import TournamentList from './TournamentList';
+
+/* ─── Constants ──────────────────────────────────────────────── */
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+// const GREEN = '#009E60';
+
+/* ─── Types ──────────────────────────────────────────────────── */
+
+interface Member {
+  id: number;
+  pseudo: string;
+  firstName: string;
+  lastName: string;
+  lichess?: string;
+  chesscom?: string;
+}
+
+interface TournamentResult {
+  id: number;
+  rank: number | null;
+  points: number;
+  tournament: {
+    name: string;
+    platform: string;
+    timeControl: string;
+    date: string;
+  };
+}
+
+interface MemberDetail extends Member {
+  totalPoints: number;
+  tournamentsPlayed: number;
+  results: TournamentResult[];
+}
 
 interface MemberFormData {
   firstName: string;

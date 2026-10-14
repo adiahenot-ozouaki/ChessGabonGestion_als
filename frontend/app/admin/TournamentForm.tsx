@@ -37,6 +37,75 @@ export default function TournamentForm({ onCreated }: { onCreated?: () => void }
       }
     } catch {
       toast.error('Impossible de contacter le serveur.');
+'use client';
+
+import { useState } from 'react';
+
+/* ─── Constants ──────────────────────────────────────────────── */
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const GREEN = '#009E60';
+
+/* ─── Types ──────────────────────────────────────────────────── */
+
+type Platform    = 'LICHESS' | 'CHESSCOM' | 'OTHER';
+type TimeControl = 'BULLET' | 'BLITZ' | 'RAPID' | 'CLASSICAL';
+type NotifType   = 'success' | 'error' | 'idle';
+
+interface TournamentPayload {
+  name:        string;
+  platform:    Platform;
+  timeControl: TimeControl;
+  date:        string;
+}
+
+/* ─── Component ─────────────────────────────────────────────── */
+
+export default function TournamentForm() {
+  const [status,  setStatus]  = useState<NotifType>('idle');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  function notify(msg: string, type: NotifType) {
+    setMessage(msg);
+    setStatus(type);
+    if (type === 'success') setTimeout(() => setStatus('idle'), 5000);
+  }
+
+  async function createTournament(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setStatus('idle');
+
+    const form = e.currentTarget;
+    const fd   = new FormData(form);
+
+    const payload: TournamentPayload = {
+      name:        fd.get('name')        as string,
+      platform:    fd.get('platform')    as Platform,
+      timeControl: fd.get('timeControl') as TimeControl,
+      date:        fd.get('date')        as string,
+    };
+
+    try {
+      const res = await fetch(`${BASE_URL}/tournaments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:  `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        notify('Tournoi créé avec succès.', 'success');
+        form.reset();
+      } else {
+        const text = await res.text();
+        notify(`Erreur ${res.status} : ${text || 'réponse inattendue du serveur.'}`, 'error');
+      }
+    } catch {
+      notify('Impossible de contacter le serveur. Vérifiez votre connexion.', 'error');
     } finally {
       setLoading(false);
     }

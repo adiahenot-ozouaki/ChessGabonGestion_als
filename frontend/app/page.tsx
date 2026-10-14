@@ -8,7 +8,7 @@ import { Logo } from '@/components/Logo';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Spinner } from '@/components/ui/Spinner';
+import { RankingSkeleton } from '@/components/ui/Skeleton';
 import { BASE_URL } from '@/lib/api';
 import type { Player } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -166,27 +166,23 @@ export default function HomePage() {
           ))}
         </nav>
 
+        {status === 'loading' && <RankingSkeleton />}
+
         {status === 'idle' && rankings.length >= 1 && (
           <Podium players={rankings} />
         )}
 
+        {status !== 'loading' && (
         <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
             <h2 className="text-sm font-semibold text-gray-900">
               Classement {activeFilter.label}
             </h2>
             <Badge variant="gray">
-              {status === 'loading'
-                ? '…'
-                : `${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}
+              {`${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}
             </Badge>
           </div>
 
-          {status === 'loading' && (
-            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
-              <Spinner /> Chargement…
-            </div>
-          )}
           {status === 'error' && (
             <EmptyState message="Impossible de contacter le serveur. Vérifiez votre connexion." />
           )}
@@ -237,6 +233,8 @@ export default function HomePage() {
             </div>
           )}
         </div>
+        )}
+
       </main>
 
       <Footer />

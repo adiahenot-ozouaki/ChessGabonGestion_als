@@ -17,17 +17,17 @@ export function RankingSkeleton() {
   return (
     <div className="space-y-8" role="status" aria-label="Chargement du classement">
       {/* Podium placeholders */}
-      <div className="flex items-end justify-center gap-3 sm:gap-6">
+      <div className="flex items-end justify-center gap-2 sm:gap-3">
         {[
-          { w: 'w-24 sm:w-28', h: 'h-24' },
-          { w: 'w-24 sm:w-28', h: 'h-32' },
-          { w: 'w-24 sm:w-28', h: 'h-20' },
+          { w: 'w-20 sm:w-24', h: 'h-16' },
+          { w: 'w-20 sm:w-24', h: 'h-24' },
+          { w: 'w-20 sm:w-24', h: 'h-14' },
         ].map((s, i) => (
           <div key={i} className={cn('flex flex-col items-center', s.w)}>
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <Skeleton className="mt-2 h-3 w-16" />
-            <Skeleton className="mt-1 h-2.5 w-10" />
-            <Skeleton className={cn('mt-3 w-full rounded-t-xl', s.h)} />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="mt-1.5 h-3 w-14" />
+            <Skeleton className="mt-1 h-2 w-8" />
+            <Skeleton className={cn('mt-2 w-full rounded-t-lg', s.h)} />
           </div>
         ))}
       </div>

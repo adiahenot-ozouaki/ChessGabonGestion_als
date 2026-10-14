@@ -198,47 +198,80 @@ export default function HomePage() {
             />
           )}
           {status === 'idle' && rankings.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead>
-                  <tr className="bg-brand text-white">
-                    <th className="w-16 px-4 py-3 text-center font-medium">Rang</th>
-                    <th className="px-4 py-3 font-medium">Joueur</th>
-                    <th className="px-4 py-3 font-medium">Nom complet</th>
-                    <th className="px-4 py-3 text-right font-medium">Points</th>
-                    <th className="px-4 py-3 text-right font-medium">Score brut</th>
-                    <th className="px-4 py-3 text-right font-medium">Tournois</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {rankings.map((p) => (
-                    <tr key={p.id} className="table-row-interactive">
-                      <td className="px-4 py-3 text-center">
-                        <RankBadge rank={p.rank} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar name={p.fullName || p.pseudo} size="sm" />
-                          <span className="font-medium text-blue">
-                            {p.pseudo || '—'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted">{p.fullName || '—'}</td>
-                      <td className="px-4 py-3 text-right font-semibold">
+            <>
+              {/* Mobile: stacked cards */}
+              <ul className="divide-y divide-border sm:hidden">
+                {rankings.map((p) => (
+                  <li key={p.id} className="flex items-center gap-3 px-4 py-3.5">
+                    <RankBadge rank={p.rank} />
+                    <Avatar name={p.fullName || p.pseudo} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-blue">
+                        {p.pseudo || '—'}
+                      </p>
+                      <p className="truncate text-xs text-muted">
+                        {p.fullName || '—'}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold tabular-nums">
                         {p.points ?? '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted">
-                        {p.rawPoints ?? '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Badge variant="gray">♞ {p.tournaments ?? 0}</Badge>
-                      </td>
+                        <span className="ml-0.5 text-xs font-normal text-muted">
+                          pts
+                        </span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        ♞ {p.tournaments ?? 0}
+                        {p.rawPoints != null ? ` · ${p.rawPoints}` : ''}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Desktop: table */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full min-w-[640px] text-left text-sm">
+                  <thead>
+                    <tr className="bg-brand text-white">
+                      <th className="w-16 px-4 py-3 text-center font-medium">Rang</th>
+                      <th className="px-4 py-3 font-medium">Joueur</th>
+                      <th className="px-4 py-3 font-medium">Nom complet</th>
+                      <th className="px-4 py-3 text-right font-medium">Points</th>
+                      <th className="px-4 py-3 text-right font-medium">Score brut</th>
+                      <th className="px-4 py-3 text-right font-medium">Tournois</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {rankings.map((p) => (
+                      <tr key={p.id} className="table-row-interactive">
+                        <td className="px-4 py-3 text-center">
+                          <RankBadge rank={p.rank} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={p.fullName || p.pseudo} size="sm" />
+                            <span className="font-medium text-blue">
+                              {p.pseudo || '—'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-muted">{p.fullName || '—'}</td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          {p.points ?? '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right text-muted">
+                          {p.rawPoints ?? '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Badge variant="gray">♞ {p.tournaments ?? 0}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
         )}

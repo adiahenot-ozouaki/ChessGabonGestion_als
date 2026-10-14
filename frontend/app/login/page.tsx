@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Footer } from '@/components/Footer';
 import { Logo } from '@/components/Logo';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
@@ -43,7 +44,7 @@ export default function LoginPage() {
         return;
       }
       if (!res.ok) {
-        setMessage(`Erreur serveur (${res.status}). R\u00e9essayez plus tard.`);
+        setMessage(`Erreur serveur (${res.status}). Réessayez plus tard.`);
         setStatus('error');
         return;
       }
@@ -52,7 +53,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(data.user));
       router.push('/admin');
     } catch {
-      setMessage('Impossible de contacter le serveur. V\u00e9rifiez votre connexion.');
+      setMessage('Impossible de contacter le serveur. Vérifiez votre connexion.');
       setStatus('error');
     }
   }
@@ -60,7 +61,8 @@ export default function LoginPage() {
   const isLoading = status === 'loading';
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface px-4 py-10">
+    <div className="flex min-h-screen flex-col bg-surface">
+    <main className="flex flex-1 items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border border-border bg-white p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Logo href="/" />
@@ -69,7 +71,7 @@ export default function LoginPage() {
           Connexion administrateur
         </h1>
         <p className="mt-1 mb-6 text-center text-sm text-muted">
-          Acc\u00e8s r\u00e9serv\u00e9 aux membres du bureau
+          Accès réservé aux membres du bureau
         </p>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div className="flex flex-col gap-1.5">
@@ -101,7 +103,7 @@ export default function LoginPage() {
                 ref={passwordRef}
                 type={showPwd ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                placeholder="••••••••"
                 required
                 disabled={isLoading}
                 className="w-full rounded-lg border border-border bg-surface py-2.5 pl-10 pr-11 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 disabled:opacity-60"
@@ -118,15 +120,17 @@ export default function LoginPage() {
           </div>
           {status === 'error' && <Alert type="error" message={message} />}
           <Button type="submit" loading={isLoading} className="w-full" size="lg">
-            {isLoading ? 'Connexion\u2026' : 'Se connecter'}
+            {isLoading ? 'Connexion…' : 'Se connecter'}
           </Button>
         </form>
         <p className="mt-6 text-center">
           <Link href="/" className="text-sm text-muted transition hover:text-brand">
-            \u2190 Retour au classement
+            ← Retour au classement
           </Link>
         </p>
       </div>
     </main>
+    <Footer />
+    </div>
   );
 }

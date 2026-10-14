@@ -10,10 +10,17 @@ interface CardProps {
 
 export function Card({ children, className, title, action }: CardProps) {
   return (
-    <section className={cn('rounded-xl border border-border bg-white shadow-sm overflow-hidden', className)}>
+    <section
+      className={cn(
+        'overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-150 hover:shadow-md',
+        className
+      )}
+    >
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
-          {title && <h2 className="text-sm font-semibold text-gray-900">{title}</h2>}
+          {title && (
+            <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+          )}
           {action}
         </div>
       )}

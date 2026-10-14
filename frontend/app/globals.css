@@ -70,3 +70,12 @@
   outline: none;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 30%, transparent);
 }
+
+/* Hide scrollbar but keep scroll (tabs mobile) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

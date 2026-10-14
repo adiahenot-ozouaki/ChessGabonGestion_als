@@ -22,7 +22,6 @@ export function Footer() {
     <footer className="mt-auto border-t border-border bg-white">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Brand */}
           <div className="space-y-3">
             <Logo href="/" size="sm" />
             <p className="max-w-xs text-sm leading-relaxed text-muted">
@@ -35,7 +34,6 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Plateformes */}
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
               Plateformes
@@ -63,12 +61,26 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact + nav */}
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Contact
+              Navigation
             </h3>
             <ul className="space-y-2.5">
+              <li>
+                <Link href="/" className="text-sm text-gray-700 transition hover:text-brand">
+                  Classement
+                </Link>
+              </li>
+              <li>
+                <Link href="/tournois" className="text-sm text-gray-700 transition hover:text-brand">
+                  Tournois
+                </Link>
+              </li>
+              <li>
+                <Link href="/a-propos" className="text-sm text-gray-700 transition hover:text-brand">
+                  À propos
+                </Link>
+              </li>
               <li>
                 <a
                   href="mailto:contact@chessgabon.ga"
@@ -79,10 +91,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <Link
-                  href="/login"
-                  className="text-sm text-muted transition hover:text-brand"
-                >
+                <Link href="/login" className="text-sm text-muted transition hover:text-brand">
                   Espace administration
                 </Link>
               </li>

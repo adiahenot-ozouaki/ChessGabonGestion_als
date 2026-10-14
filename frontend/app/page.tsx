@@ -58,27 +58,29 @@ function Podium({ players }: { players: Player[] }) {
   const top = players.slice(0, 3);
   if (top.length < 1) return null;
   const orders = [top[1], top[0], top[2]];
-  const heights = ['h-24', 'h-32', 'h-20'];
+  const heights = ['h-16', 'h-24', 'h-14'];
 
   return (
-    <div className="mb-8 flex items-end justify-center gap-3 sm:gap-6">
+    <div className="mb-6 flex items-end justify-center gap-2 sm:gap-3">
       {orders.map((p, i) => {
-        if (!p) return <div key={i} className="w-24 sm:w-28" />;
+        if (!p) return <div key={i} className="w-20 sm:w-24" />;
         const isFirst = p.rank === 1;
         return (
-          <div key={p.id} className="flex w-24 flex-col items-center sm:w-28">
+          <div key={p.id} className="flex w-20 flex-col items-center sm:w-24">
             <Avatar
               name={p.fullName || p.pseudo}
-              size={isFirst ? 'lg' : 'md'}
-              className={cn(isFirst && 'ring-2 ring-yellow-400 ring-offset-2')}
+              size={isFirst ? 'md' : 'sm'}
+              className={cn(
+                isFirst && 'h-10 w-10 text-xs ring-2 ring-yellow-400 ring-offset-1'
+              )}
             />
-            <p className="mt-2 max-w-full truncate text-center text-sm font-semibold text-gray-900">
+            <p className="mt-1.5 max-w-full truncate text-center text-xs font-semibold text-gray-900 sm:text-sm">
               {p.pseudo}
             </p>
-            <p className="text-xs text-muted">{p.points} pts</p>
+            <p className="text-[11px] text-muted tabular-nums">{p.points} pts</p>
             <div
               className={cn(
-                'mt-3 flex w-full items-start justify-center rounded-t-xl pt-3 text-lg font-bold text-white',
+                'mt-2 flex w-full items-start justify-center rounded-t-lg pt-2 text-base font-bold text-white',
                 heights[i],
                 isFirst && 'bg-brand',
                 p.rank === 2 && 'bg-gray-400',
@@ -199,26 +201,19 @@ export default function HomePage() {
           )}
           {status === 'idle' && rankings.length > 0 && (
             <>
-              {/* Mobile: stacked cards */}
               <ul className="divide-y divide-border sm:hidden">
                 {rankings.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-4 py-3.5">
                     <RankBadge rank={p.rank} />
                     <Avatar name={p.fullName || p.pseudo} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-blue">
-                        {p.pseudo || '—'}
-                      </p>
-                      <p className="truncate text-xs text-muted">
-                        {p.fullName || '—'}
-                      </p>
+                      <p className="truncate font-medium text-blue">{p.pseudo || '—'}</p>
+                      <p className="truncate text-xs text-muted">{p.fullName || '—'}</p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-sm font-semibold tabular-nums">
                         {p.points ?? '—'}
-                        <span className="ml-0.5 text-xs font-normal text-muted">
-                          pts
-                        </span>
+                        <span className="ml-0.5 text-xs font-normal text-muted">pts</span>
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
                         ♞ {p.tournaments ?? 0}
@@ -229,7 +224,6 @@ export default function HomePage() {
                 ))}
               </ul>
 
-              {/* Desktop: table */}
               <div className="hidden overflow-x-auto sm:block">
                 <table className="w-full min-w-[640px] text-left text-sm">
                   <thead>
@@ -251,18 +245,12 @@ export default function HomePage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
                             <Avatar name={p.fullName || p.pseudo} size="sm" />
-                            <span className="font-medium text-blue">
-                              {p.pseudo || '—'}
-                            </span>
+                            <span className="font-medium text-blue">{p.pseudo || '—'}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-muted">{p.fullName || '—'}</td>
-                        <td className="px-4 py-3 text-right font-semibold">
-                          {p.points ?? '—'}
-                        </td>
-                        <td className="px-4 py-3 text-right text-muted">
-                          {p.rawPoints ?? '—'}
-                        </td>
+                        <td className="px-4 py-3 text-right font-semibold">{p.points ?? '—'}</td>
+                        <td className="px-4 py-3 text-right text-muted">{p.rawPoints ?? '—'}</td>
                         <td className="px-4 py-3 text-right">
                           <Badge variant="gray">♞ {p.tournaments ?? 0}</Badge>
                         </td>

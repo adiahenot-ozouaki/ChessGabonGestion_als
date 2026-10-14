@@ -125,7 +125,7 @@ export default function HomePage() {
           <Logo />
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 rounded-lg border border-accent-dark bg-accent px-3.5 py-2 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-accent-dark"
+            className="inline-flex items-center gap-2 rounded-lg border border-accent-dark bg-accent px-3.5 py-2 text-sm font-medium text-gray-900 shadow-sm transition-all duration-150 hover:bg-accent-dark hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-dark/40 focus-visible:ring-offset-2"
           >
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Administration</span>
@@ -154,10 +154,10 @@ export default function HomePage() {
               onClick={() => void loadRankings(f)}
               aria-pressed={activeFilter.label === f.label}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
+                'pill inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium',
                 activeFilter.label === f.label
-                  ? 'border-brand bg-brand text-white shadow-sm'
-                  : 'border-border bg-white text-gray-600 hover:border-brand/40 hover:text-brand'
+                  ? 'border-brand bg-brand text-white shadow-md ring-2 ring-brand/20'
+                  : 'border-border bg-white text-gray-600'
               )}
             >
               <span>{f.icon}</span>
@@ -204,7 +204,7 @@ export default function HomePage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {rankings.map((p) => (
-                    <tr key={p.id} className="transition hover:bg-gray-50/80">
+                    <tr key={p.id} className="table-row-interactive">
                       <td className="px-4 py-3 text-center">
                         <RankBadge rank={p.rank} />
                       </td>

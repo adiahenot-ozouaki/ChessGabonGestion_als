@@ -12,7 +12,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
-import { Alert } from '@/components/ui/Alert';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -24,6 +23,7 @@ import {
   AdminTableSkeleton,
 } from '@/components/ui/Skeleton';
 import { apiFetch, getToken } from '@/lib/api';
+import { toast } from '@/lib/toast';
 import type { Member, MemberDetail } from '@/lib/types';
 import { cn, formatDate } from '@/lib/utils';
 import TournamentForm from './TournamentForm';
@@ -36,7 +36,6 @@ type SortColumn = keyof Pick<
   'id' | 'pseudo' | 'firstName' | 'lastName' | 'lichess' | 'chesscom'
 >;
 type SortDirection = 'asc' | 'desc';
-type NotifType = 'success' | 'error' | '';
 
 interface MemberFormData {
   firstName: string;
@@ -112,13 +111,7 @@ export default function AdminPage() {
   const [ready, setReady] = useState(false);
   const [membersLoading, setMembersLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(
-    null
-  );
-  const [notif, setNotif] = useState<{ message: string; type: NotifType }>({
-    message: '',
-    type: '',
-  });
+  const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<SortColumn>('pseudo');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -130,15 +123,7 @@ export default function AdminPage() {
     router.push('/login');
   }
 
-  function notify(message: string, type: NotifType) {
-    setNotif({ message, type });
-    setTimeout(() => setNotif({ message: '', type: '' }), 4000);
-  }
-
-  async function authFetch(
-    path: string,
-    options: RequestInit = {}
-  ): Promise<Response> {
+  async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
     const res = await apiFetch(path, options);
     if (res.status === 401) logout();
     return res;
@@ -199,14 +184,14 @@ export default function AdminPage() {
         body: JSON.stringify(readFormData(e.currentTarget)),
       });
       if (res.ok) {
-        notify('Membre ajouté avec succès', 'success');
+        toast.success('Membre ajouté avec succès');
         e.currentTarget.reset();
         void loadMembers();
       } else {
-        notify("Erreur lors de l'ajout", 'error');
+        toast.error("Erreur lors de l'ajout");
       }
     } catch {
-      notify('Impossible de contacter le serveur', 'error');
+      toast.error('Impossible de contacter le serveur');
     } finally {
       setAddLoading(false);
     }
@@ -221,14 +206,14 @@ export default function AdminPage() {
         body: JSON.stringify(readFormData(e.currentTarget)),
       });
       if (res.ok) {
-        notify('Membre modifié avec succès', 'success');
+        toast.success('Membre modifié avec succès');
         setEditingMember(null);
         void loadMembers();
       } else {
-        notify('Erreur lors de la modification', 'error');
+        toast.error('Erreur lors de la modification');
       }
     } catch {
-      notify('Impossible de contacter le serveur', 'error');
+      toast.error('Impossible de contacter le serveur');
     }
   }
 
@@ -237,14 +222,14 @@ export default function AdminPage() {
     try {
       const res = await authFetch(`/members/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        notify('Membre supprimé', 'success');
+        toast.success('Membre supprimé');
         if (selectedMember?.id === id) setSelectedMember(null);
         void loadMembers();
       } else {
-        notify('Erreur lors de la suppression', 'error');
+        toast.error('Erreur lors de la suppression');
       }
     } catch {
-      notify('Impossible de contacter le serveur', 'error');
+      toast.error('Impossible de contacter le serveur');
     }
   }
 
@@ -325,15 +310,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {notif.message && (
-        <div className="mx-auto max-w-6xl px-4 pt-4">
-          <Alert
-            type={notif.type === 'success' ? 'success' : 'error'}
-            message={notif.message}
-          />
-        </div>
-      )}
-
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
         {tab === 'members' && (
           <div className="space-y-6">
@@ -350,11 +326,7 @@ export default function AdminPage() {
               <Card
                 title={`Modifier — ${editingMember.pseudo}`}
                 action={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingMember(null)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => setEditingMember(null)}>
                     Annuler
                   </Button>
                 }
@@ -435,10 +407,7 @@ export default function AdminPage() {
                             <tr key={m.id} className="hover:bg-gray-50/80">
                               <td className="px-3 py-2.5">
                                 <div className="flex items-center gap-2">
-                                  <Avatar
-                                    name={`${m.firstName} ${m.lastName}`}
-                                    size="sm"
-                                  />
+                                  <Avatar name={`${m.firstName} ${m.lastName}`} size="sm" />
                                   <button
                                     type="button"
                                     className="font-medium text-blue hover:underline"
@@ -454,18 +423,10 @@ export default function AdminPage() {
                               <td className="px-3 py-2.5 text-muted">{m.chesscom || '—'}</td>
                               <td className="px-3 py-2.5">
                                 <div className="flex gap-1.5">
-                                  <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => setEditingMember(m)}
-                                  >
+                                  <Button size="sm" variant="secondary" onClick={() => setEditingMember(m)}>
                                     Modifier
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => void deleteMember(m.id)}
-                                  >
+                                  <Button size="sm" variant="danger" onClick={() => void deleteMember(m.id)}>
                                     Supprimer
                                   </Button>
                                 </div>
@@ -484,19 +445,13 @@ export default function AdminPage() {
               <Card
                 title={`Résultats — ${selectedMember.pseudo}`}
                 action={
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedMember(null)}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedMember(null)}>
                     Fermer
                   </Button>
                 }
               >
                 <div className="mb-4 flex flex-wrap gap-3">
-                  <Badge variant="brand">
-                    {selectedMember.totalPoints} pts championnat
-                  </Badge>
+                  <Badge variant="brand">{selectedMember.totalPoints} pts championnat</Badge>
                   <Badge variant="gray">
                     {selectedMember.tournamentsPlayed} tournoi
                     {selectedMember.tournamentsPlayed !== 1 ? 's' : ''}
@@ -535,13 +490,19 @@ export default function AdminPage() {
 
         {tab === 'tournaments' && (
           <div className="space-y-6">
-            <TournamentForm onCreated={() => { /* list refreshes itself */ }} />
-            <TournamentList />
+            <Card title="Créer un tournoi">
+              <TournamentForm onCreated={() => { /* list self-refreshes */ }} />
+            </Card>
+            <Card title="Liste des tournois">
+              <TournamentList />
+            </Card>
           </div>
         )}
 
         {tab === 'import' && (
-          <ImportCsvForm members={members} onImported={() => void loadMembers()} />
+          <Card title="Import CSV">
+            <ImportCsvForm />
+          </Card>
         )}
       </main>
     </div>

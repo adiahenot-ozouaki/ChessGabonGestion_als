@@ -45,14 +45,30 @@ interface MemberFormData {
   chesscom: string;
 }
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: 'members', label: 'Membres', icon: <Users className="h-4 w-4" /> },
+const TABS: {
+  id: Tab;
+  label: string;
+  shortLabel: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    id: 'members',
+    label: 'Membres',
+    shortLabel: 'Membres',
+    icon: <Users className="h-4 w-4" />,
+  },
   {
     id: 'tournaments',
     label: 'Tournois',
+    shortLabel: 'Tournois',
     icon: <Trophy className="h-4 w-4" />,
   },
-  { id: 'import', label: 'Import CSV', icon: <Upload className="h-4 w-4" /> },
+  {
+    id: 'import',
+    label: 'Import CSV',
+    shortLabel: 'CSV',
+    icon: <Upload className="h-4 w-4" />,
+  },
 ];
 
 function MemberFormFields({ defaults }: { defaults?: Member }) {
@@ -289,24 +305,31 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <div className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition',
-                tab === t.id
-                  ? 'border-brand text-brand'
-                  : 'border-transparent text-muted hover:text-gray-900'
-              )}
-            >
-              {t.icon}
-              {t.label}
-            </button>
-          ))}
+      <div className="sticky top-14 z-10 border-b border-border bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-6xl px-2 sm:px-6">
+          <nav
+            aria-label="Sections administration"
+            className="flex gap-1 overflow-x-auto px-2 py-2 scrollbar-none sm:px-0"
+          >
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  'inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 sm:flex-1 sm:gap-2 sm:px-4 sm:py-2.5',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30',
+                  tab === t.id
+                    ? 'bg-brand text-white shadow-md'
+                    : 'text-gray-600 hover:bg-brand-light hover:text-brand active:scale-[0.98]'
+                )}
+              >
+                {t.icon}
+                <span className="sm:hidden">{t.shortLabel}</span>
+                <span className="hidden sm:inline">{t.label}</span>
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 
@@ -367,7 +390,11 @@ export default function AdminPage() {
                   </div>
 
                   {filteredMembers.length === 0 ? (
-                    <EmptyState message="Aucun membre trouvé." />
+                    <EmptyState
+                      variant="search"
+                      title="Aucun résultat"
+                      message="Aucun membre ne correspond à votre recherche."
+                    />
                   ) : (
                     <div className="overflow-x-auto rounded-lg border border-border">
                       <table className="w-full min-w-[700px] text-left text-sm">
@@ -404,7 +431,7 @@ export default function AdminPage() {
                         </thead>
                         <tbody className="divide-y divide-border bg-white">
                           {filteredMembers.map((m) => (
-                            <tr key={m.id} className="hover:bg-gray-50/80">
+                            <tr key={m.id} className="table-row-interactive">
                               <td className="px-3 py-2.5">
                                 <div className="flex items-center gap-2">
                                   <Avatar name={`${m.firstName} ${m.lastName}`} size="sm" />
@@ -481,7 +508,11 @@ export default function AdminPage() {
                     </table>
                   </div>
                 ) : (
-                  <EmptyState message="Aucun résultat pour ce joueur." />
+                  <EmptyState
+                    variant="empty"
+                    title="Pas encore de résultats"
+                    message="Ce membre n’a participé à aucun tournoi enregistré."
+                  />
                 )}
               </Card>
             )}
@@ -491,7 +522,7 @@ export default function AdminPage() {
         {tab === 'tournaments' && (
           <div className="space-y-6">
             <Card title="Créer un tournoi">
-              <TournamentForm onCreated={() => { /* list self-refreshes */ }} />
+              <TournamentForm />
             </Card>
             <Card title="Liste des tournois">
               <TournamentList />
@@ -500,7 +531,7 @@ export default function AdminPage() {
         )}
 
         {tab === 'import' && (
-          <Card title="Import CSV">
+          <Card title="Importer un classement CSV">
             <ImportCsvForm />
           </Card>
         )}

@@ -184,10 +184,18 @@ export default function HomePage() {
           </div>
 
           {status === 'error' && (
-            <EmptyState message="Impossible de contacter le serveur. Vérifiez votre connexion." />
+            <EmptyState
+              variant="offline"
+              title="Connexion impossible"
+              message="Impossible de contacter le serveur. Vérifiez votre connexion réseau."
+            />
           )}
           {status === 'idle' && rankings.length === 0 && (
-            <EmptyState message="Aucun joueur dans ce classement." />
+            <EmptyState
+              variant="empty"
+              title="Classement vide"
+              message="Aucun joueur dans ce classement pour le moment."
+            />
           )}
           {status === 'idle' && rankings.length > 0 && (
             <div className="overflow-x-auto">

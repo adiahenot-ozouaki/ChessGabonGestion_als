@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { ToastContainer } from '@/components/ui/Toast';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: {
     default: 'ChessGabon Gestion',
-    template: '%s \u2014 ChessGabon Gestion',
+    template: '%s — ChessGabon Gestion',
   },
   description:
-    'Gestion des tournois et classements officiels du club d\u2019\u00e9checs Chess Gabon',
+    'Gestion des tournois et classements officiels du club d’échecs Chess Gabon',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ToastContainer />
+      </body>
     </html>
   );
 }

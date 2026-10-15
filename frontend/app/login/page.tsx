@@ -98,7 +98,7 @@ export default function LoginPage() {
           paddingRight: 'max(1rem, env(safe-area-inset-right))',
         }}
       >
-        <div className="w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
+        <div className="animate-scale-in w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-6 text-center">
             <div
               className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-light text-2xl"

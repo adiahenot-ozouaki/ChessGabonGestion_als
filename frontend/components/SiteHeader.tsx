@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/Logo';
@@ -11,7 +12,11 @@ const NAV = [
   { href: '/a-propos', label: 'À propos' },
 ] as const;
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  action?: ReactNode;
+}
+
+export function SiteHeader({ action }: SiteHeaderProps = {}) {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -23,25 +28,28 @@ export function SiteHeader() {
     <header className="sticky top-0 z-20 border-b border-border bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Logo size="sm" />
-        <nav
-          aria-label="Navigation principale"
-          className="flex items-center gap-1 overflow-x-auto scrollbar-none sm:gap-1.5"
-        >
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3',
-                isActive(item.href)
-                  ? 'bg-brand-light text-brand-dark'
-                  : 'text-muted hover:bg-gray-50 hover:text-gray-900'
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <nav
+            aria-label="Navigation principale"
+            className="flex items-center gap-1 overflow-x-auto scrollbar-none sm:gap-1.5"
+          >
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors sm:px-3',
+                  isActive(item.href)
+                    ? 'bg-brand-light text-brand-dark'
+                    : 'text-muted hover:bg-gray-50 hover:text-gray-900'
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          {action}
+        </div>
       </div>
     </header>
   );

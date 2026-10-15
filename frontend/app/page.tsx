@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Settings } from 'lucide-react';
 import { Footer } from '@/components/Footer';
-import { Logo } from '@/components/Logo';
+import { SiteHeader } from '@/components/SiteHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -14,19 +14,34 @@ import type { Player } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface Filter {
+  id: string;
   label: string;
   query: string;
   icon: string;
 }
 
-const FILTERS: Filter[] = [
-  { label: 'Général', query: '', icon: '🏆' },
-  { label: 'Bullet', query: '?timeControl=BULLET', icon: '⚡' },
-  { label: 'Blitz', query: '?timeControl=BLITZ', icon: '🔥' },
-  { label: 'Rapide', query: '?timeControl=RAPID', icon: '⏱' },
-  { label: 'Mensuel', query: '?type=monthly&month=6&year=2026', icon: '📅' },
-  { label: 'Annuel', query: '?type=yearly&year=2026', icon: '📊' },
-];
+function buildFilters(now = new Date()): Filter[] {
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  return [
+    { id: 'general', label: 'Général', query: '', icon: '🏆' },
+    { id: 'bullet', label: 'Bullet', query: '?timeControl=BULLET', icon: '⚡' },
+    { id: 'blitz', label: 'Blitz', query: '?timeControl=BLITZ', icon: '🔥' },
+    { id: 'rapid', label: 'Rapide', query: '?timeControl=RAPID', icon: '⏱' },
+    {
+      id: 'monthly',
+      label: 'Mensuel',
+      query: `?type=monthly&month=${month}&year=${year}`,
+      icon: '📅',
+    },
+    {
+      id: 'yearly',
+      label: 'Annuel',
+      query: `?type=yearly&year=${year}`,
+      icon: '📊',
+    },
+  ];
+}
 
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
@@ -58,18 +73,19 @@ function Podium({ players }: { players: Player[] }) {
         if (!p) return <div key={i} className="w-20 sm:w-24" />;
         const isFirst = p.rank === 1;
         return (
-          <div key={p.id} className="flex w-20 flex-col items-center sm:w-24">
+          <Link
+            key={p.id}
+            href={`/membres/${p.id}`}
+            className="flex w-20 flex-col items-center rounded-lg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/40 sm:w-24"
+          >
             <Avatar
               name={p.fullName || p.pseudo}
               size={isFirst ? 'md' : 'sm'}
               className={cn(isFirst && 'h-10 w-10 text-xs ring-2 ring-yellow-400 ring-offset-1')}
             />
-            <Link
-              href={`/membres/${p.id}`}
-              className="mt-1.5 max-w-full truncate text-center text-xs font-semibold text-gray-900 hover:text-brand sm:text-sm"
-            >
+            <p className="mt-1.5 max-w-full truncate text-center text-xs font-semibold text-gray-900 hover:text-brand sm:text-sm">
               {p.pseudo}
-            </Link>
+            </p>
             <p className="text-[11px] text-muted tabular-nums">{p.points} pts</p>
             <div
               className={cn(
@@ -82,16 +98,27 @@ function Podium({ players }: { players: Player[] }) {
             >
               {p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : '🥉'}
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>
   );
 }
 
+function filterSubtitle(filter: Filter, now: Date): string | null {
+  if (filter.id === 'monthly') {
+    const label = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+  if (filter.id === 'yearly') return `Année ${now.getFullYear()}`;
+  return null;
+}
+
 export default function HomePage() {
+  const now = useMemo(() => new Date(), []);
+  const filters = useMemo(() => buildFilters(now), [now]);
   const [rankings, setRankings] = useState<Player[]>([]);
-  const [activeFilter, setActiveFilter] = useState<Filter>(FILTERS[0]);
+  const [activeFilter, setActiveFilter] = useState<Filter>(filters[0]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('loading');
 
   const loadRankings = useCallback(async (filter: Filter) => {
@@ -110,48 +137,50 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    void loadRankings(FILTERS[0]);
-  }, [loadRankings]);
+    void loadRankings(filters[0]);
+  }, [loadRankings, filters]);
+
+  const periodHint = filterSubtitle(activeFilter, now);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
-          <Logo />
-          <div className="flex items-center gap-2">
-            <Link href="/tournois" className="hidden text-sm text-muted transition hover:text-brand sm:inline">Tournois</Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-lg border border-accent-dark bg-accent px-3.5 py-2 text-sm font-medium text-gray-900 shadow-sm transition-all duration-150 hover:bg-accent-dark hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-dark/40 focus-visible:ring-offset-2"
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Administration</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-dvh flex-col bg-surface">
+      <SiteHeader
+        action={
+          <Link
+            href="/login"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent-dark bg-accent px-2.5 py-1.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-accent-dark sm:gap-2 sm:px-3.5 sm:py-2"
+          >
+            <Settings className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">Administration</span>
+          </Link>
+        }
+      />
 
       <main className="mx-auto max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Classements officiels</h1>
-          <p className="mt-1.5 text-sm text-muted">Club d'échecs Chess Gabon — tournois multi-cadences</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+            Classements officiels
+          </h1>
+          <p className="mt-1.5 text-sm text-muted">
+            Club d'échecs Chess Gabon — tournois multi-cadences
+          </p>
         </div>
 
         <nav aria-label="Filtres de classement" className="mb-8 flex flex-wrap items-center justify-center gap-2">
-          {FILTERS.map((f) => (
+          {filters.map((f) => (
             <button
-              key={f.label}
+              key={f.id}
               type="button"
               onClick={() => void loadRankings(f)}
-              aria-pressed={activeFilter.label === f.label}
+              aria-pressed={activeFilter.id === f.id}
               className={cn(
                 'pill inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium',
-                activeFilter.label === f.label
+                activeFilter.id === f.id
                   ? 'border-brand bg-brand text-white shadow-md ring-2 ring-brand/20'
                   : 'border-border bg-white text-gray-600'
               )}
             >
-              <span>{f.icon}</span>
+              <span aria-hidden>{f.icon}</span>
               {f.label}
             </button>
           ))}
@@ -163,17 +192,66 @@ export default function HomePage() {
 
         {status !== 'loading' && (
           <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-              <h2 className="text-sm font-semibold text-gray-900">Classement {activeFilter.label}</h2>
-              <Badge variant="gray">{`${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}</Badge>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  Classement {activeFilter.label}
+                </h2>
+                {periodHint && <p className="text-xs text-muted">{periodHint}</p>}
+              </div>
+              <Badge variant="gray">
+                {`${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}
+              </Badge>
             </div>
 
             {status === 'error' && (
-              <EmptyState variant="offline" title="Connexion impossible" message="Impossible de contacter le serveur. Vérifiez votre connexion réseau." />
+              <EmptyState
+                variant="offline"
+                title="Connexion impossible"
+                message="Impossible de contacter le serveur. Vérifiez votre connexion réseau."
+                action={
+                  <button
+                    type="button"
+                    onClick={() => void loadRankings(activeFilter)}
+                    className="text-sm font-medium text-brand hover:underline"
+                  >
+                    Réessayer
+                  </button>
+                }
+              />
             )}
+
             {status === 'idle' && rankings.length === 0 && (
-              <EmptyState variant="empty" title="Classement vide" message="Aucun joueur dans ce classement pour le moment." />
+              <EmptyState
+                variant="empty"
+                title={
+                  activeFilter.id === 'monthly' || activeFilter.id === 'yearly'
+                    ? 'Aucun résultat sur cette période'
+                    : 'Classement vide'
+                }
+                message={
+                  activeFilter.id === 'monthly' || activeFilter.id === 'yearly'
+                    ? `Pas encore de tournoi enregistré pour ${periodHint ?? 'cette période'}.`
+                    : 'Aucun joueur dans ce classement pour le moment. Importez des résultats depuis l’administration.'
+                }
+                action={
+                  activeFilter.id !== 'general' ? (
+                    <button
+                      type="button"
+                      onClick={() => void loadRankings(filters[0])}
+                      className="text-sm font-medium text-brand hover:underline"
+                    >
+                      Voir le classement général
+                    </button>
+                  ) : (
+                    <Link href="/tournois" className="text-sm font-medium text-brand hover:underline">
+                      Voir les tournois
+                    </Link>
+                  )
+                }
+              />
             )}
+
             {status === 'idle' && rankings.length > 0 && (
               <>
                 <ul className="divide-y divide-border sm:hidden">
@@ -182,7 +260,9 @@ export default function HomePage() {
                       <RankBadge rank={p.rank} />
                       <Avatar name={p.fullName || p.pseudo} size="sm" />
                       <div className="min-w-0 flex-1">
-                        <Link href={`/membres/${p.id}`} className="block truncate font-medium text-blue hover:underline">{p.pseudo || '—'}</Link>
+                        <Link href={`/membres/${p.id}`} className="block truncate font-medium text-blue hover:underline">
+                          {p.pseudo || '—'}
+                        </Link>
                         <p className="truncate text-xs text-muted">{p.fullName || '—'}</p>
                       </div>
                       <div className="shrink-0 text-right">
@@ -218,12 +298,14 @@ export default function HomePage() {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
                               <Avatar name={p.fullName || p.pseudo} size="sm" />
-                              <Link href={`/membres/${p.id}`} className="font-medium text-blue hover:underline">{p.pseudo || '—'}</Link>
+                              <Link href={`/membres/${p.id}`} className="font-medium text-blue hover:underline">
+                                {p.pseudo || '—'}
+                              </Link>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-muted">{p.fullName || '—'}</td>
-                          <td className="px-4 py-3 text-right font-semibold">{p.points ?? '—'}</td>
-                          <td className="px-4 py-3 text-right text-muted">{p.rawPoints ?? '—'}</td>
+                          <td className="px-4 py-3 text-right font-semibold tabular-nums">{p.points ?? '—'}</td>
+                          <td className="px-4 py-3 text-right text-muted tabular-nums">{p.rawPoints ?? '—'}</td>
                           <td className="px-4 py-3 text-right"><Badge variant="gray">♞ {p.tournaments ?? 0}</Badge></td>
                         </tr>
                       ))}

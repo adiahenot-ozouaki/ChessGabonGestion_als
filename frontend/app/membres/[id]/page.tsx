@@ -1,9 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
+  ExternalLink,
+  Link2,
+  Share2,
+} from 'lucide-react';
 import { Footer } from '@/components/Footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Avatar } from '@/components/ui/Avatar';
@@ -11,32 +18,59 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { BASE_URL } from '@/lib/api';
+import { toast } from '@/lib/toast';
 import {
   PLATFORM_LABELS,
   TIME_CONTROL_LABELS,
   type MemberDetail,
   type Platform,
   type TimeControl,
+  type TournamentResult,
 } from '@/lib/types';
-import { formatDate } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 
 type Status = 'loading' | 'idle' | 'error' | 'notfound';
+type SortKey = 'date' | 'points' | 'rank';
+type SortDir = 'desc' | 'asc';
 
 function RankPill({ rank }: { rank: number | null }) {
   if (rank == null) return <span className="text-muted">—</span>;
   if (rank === 1)
     return (
-      <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-yellow-400 px-1.5 text-xs font-bold text-yellow-900">1</span>
+      <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-yellow-400 px-1.5 text-xs font-bold text-yellow-900">
+        1
+      </span>
     );
   if (rank === 2)
     return (
-      <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-gray-300 px-1.5 text-xs font-bold text-gray-700">2</span>
+      <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-gray-300 px-1.5 text-xs font-bold text-gray-700">
+        2
+      </span>
     );
   if (rank === 3)
     return (
-      <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-amber-600 px-1.5 text-xs font-bold text-amber-50">3</span>
+      <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-amber-600 px-1.5 text-xs font-bold text-amber-50">
+        3
+      </span>
     );
   return <span className="tabular-nums text-sm text-gray-700">{rank}</span>;
+}
+
+function computeStats(results: TournamentResult[]) {
+  if (!results.length) {
+    return { bestRank: null as number | null, avgPoints: null as number | null, podiums: 0 };
+  }
+  const ranks = results
+    .map((r) => r.rank)
+    .filter((r): r is number => typeof r === 'number' && r > 0);
+  const bestRank = ranks.length ? Math.min(...ranks) : null;
+  const pts = results.map((r) => r.points ?? 0);
+  const avgPoints =
+    pts.length > 0
+      ? Math.round((pts.reduce((a, b) => a + b, 0) / pts.length) * 10) / 10
+      : null;
+  const podiums = ranks.filter((r) => r <= 3).length;
+  return { bestRank, avgPoints, podiums };
 }
 
 export default function MemberPublicPage() {
@@ -44,6 +78,9 @@ export default function MemberPublicPage() {
   const id = String(params?.id ?? '');
   const [member, setMember] = useState<MemberDetail | null>(null);
   const [status, setStatus] = useState<Status>('loading');
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!id) {
@@ -51,6 +88,7 @@ export default function MemberPublicPage() {
       return;
     }
     let cancelled = false;
+    setStatus('loading');
     (async () => {
       try {
         const res = await fetch(`${BASE_URL}/members/${id}/results`);
@@ -71,20 +109,86 @@ export default function MemberPublicPage() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, reloadKey]);
+
+  const stats = useMemo(
+    () => computeStats(member?.results ?? []),
+    [member?.results]
+  );
+
+  const sortedResults = useMemo(() => {
+    const list = [...(member?.results ?? [])];
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'date') {
+        cmp =
+          new Date(a.tournament.date).getTime() -
+          new Date(b.tournament.date).getTime();
+      } else if (sortKey === 'points') {
+        cmp = (a.points ?? 0) - (b.points ?? 0);
+      } else {
+        const ra = a.rank ?? 9999;
+        const rb = b.rank ?? 9999;
+        cmp = ra - rb;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return list;
+  }, [member?.results, sortKey, sortDir]);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'rank' ? 'asc' : 'desc');
+    }
+  }
+
+  async function shareProfile() {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const title = member ? `${member.pseudo} — Chess Gabon` : 'Chess Gabon';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success('Lien copié dans le presse-papiers');
+    } catch {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Lien copié dans le presse-papiers');
+      } catch {
+        toast.error('Impossible de partager le lien');
+      }
+    }
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
       <SiteHeader />
 
       <main className="mx-auto max-w-3xl flex-1 px-4 py-8 sm:px-6">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          Retour au classement
-        </Link>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-brand"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            Retour au classement
+          </Link>
+          {status === 'idle' && member && (
+            <button
+              type="button"
+              onClick={() => void shareProfile()}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:border-brand hover:text-brand"
+            >
+              <Share2 className="h-3.5 w-3.5" aria-hidden />
+              Partager
+            </button>
+          )}
+        </div>
 
         {status === 'loading' && (
           <div className="space-y-4" role="status" aria-label="Chargement">
@@ -95,12 +199,30 @@ export default function MemberPublicPage() {
                 <Skeleton className="h-3 w-28" />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-xl" />
+              ))}
+            </div>
             <Skeleton className="h-40 w-full rounded-xl" />
           </div>
         )}
 
         {status === 'error' && (
-          <EmptyState variant="offline" title="Connexion impossible" message="Impossible de charger la fiche joueur." />
+          <EmptyState
+            variant="offline"
+            title="Connexion impossible"
+            message="Impossible de charger la fiche joueur."
+            action={
+              <button
+                type="button"
+                onClick={() => setReloadKey((k) => k + 1)}
+                className="text-sm font-medium text-brand hover:underline"
+              >
+                Réessayer
+              </button>
+            }
+          />
         )}
 
         {status === 'notfound' && (
@@ -154,24 +276,72 @@ export default function MemberPublicPage() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Badge variant="brand" className="px-3 py-1 text-sm">
-                  {member.totalPoints} pts
-                </Badge>
-                <Badge variant="gray" className="px-3 py-1 text-sm">
-                  {member.tournamentsPlayed} tournoi
-                  {member.tournamentsPlayed !== 1 ? 's' : ''}
-                </Badge>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
+                <p className="text-xs font-medium text-muted">Points</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-brand">
+                  {member.totalPoints}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
+                <p className="text-xs font-medium text-muted">Tournois</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-gray-900">
+                  {member.tournamentsPlayed}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
+                <p className="text-xs font-medium text-muted">Meilleur rang</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-gray-900">
+                  {stats.bestRank != null ? `#${stats.bestRank}` : '—'}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
+                <p className="text-xs font-medium text-muted">Podiums</p>
+                <p className="mt-1 text-xl font-bold tabular-nums text-gray-900">
+                  {stats.podiums}
+                  {stats.avgPoints != null && (
+                    <span className="ml-1.5 text-xs font-normal text-muted">
+                      · moy. {stats.avgPoints} pts
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
 
-            <div className="mb-3 mt-8 flex items-center justify-between">
+            <div className="mb-3 mt-8 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-gray-900">Résultats</h2>
               {member.results?.length ? (
-                <span className="text-xs text-muted">
-                  {member.results.length} participation
-                  {member.results.length !== 1 ? 's' : ''}
-                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {(
+                    [
+                      ['date', 'Date'],
+                      ['points', 'Points'],
+                      ['rank', 'Rang'],
+                    ] as [SortKey, string][]
+                  ).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => toggleSort(key)}
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition',
+                        sortKey === key
+                          ? 'border-brand bg-brand text-white'
+                          : 'border-border bg-white text-gray-600 hover:border-brand/40'
+                      )}
+                    >
+                      {label}
+                      {sortKey === key &&
+                        (sortDir === 'desc' ? (
+                          <ArrowDownWideNarrow className="h-3 w-3" aria-hidden />
+                        ) : (
+                          <ArrowUpWideNarrow className="h-3 w-3" aria-hidden />
+                        ))}
+                    </button>
+                  ))}
+                </div>
               ) : null}
             </div>
 
@@ -184,14 +354,16 @@ export default function MemberPublicPage() {
             ) : (
               <>
                 <ul className="space-y-2 sm:hidden">
-                  {member.results.map((r) => (
+                  {sortedResults.map((r) => (
                     <li
                       key={r.id}
                       className="rounded-xl border border-border bg-white p-3.5 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="font-medium text-gray-900">{r.tournament.name}</p>
+                          <p className="font-medium text-gray-900">
+                            {r.tournament.name}
+                          </p>
                           <p className="mt-0.5 text-xs text-muted">
                             {formatDate(r.tournament.date)}
                           </p>
@@ -209,8 +381,7 @@ export default function MemberPublicPage() {
                           ] ?? r.tournament.timeControl}
                         </Badge>
                         <span className="ml-auto text-sm font-semibold tabular-nums">
-                          {r.points}{' '}
-                          <span className="text-xs font-normal text-muted">pts tournoi</span>
+                          {r.points ?? 0} pts
                         </span>
                       </div>
                     </li>
@@ -225,34 +396,30 @@ export default function MemberPublicPage() {
                         <th className="px-4 py-2.5 font-medium">Date</th>
                         <th className="px-4 py-2.5 font-medium">Plateforme</th>
                         <th className="px-4 py-2.5 text-center font-medium">Rang</th>
-                        <th className="px-4 py-2.5 text-right font-medium">Score</th>
+                        <th className="px-4 py-2.5 text-right font-medium">Points</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {member.results.map((r) => (
+                      {sortedResults.map((r) => (
                         <tr key={r.id} className="table-row-interactive">
                           <td className="px-4 py-2.5 font-medium">
                             {r.tournament.name}
-                            <p className="text-xs text-muted">
-                              {TIME_CONTROL_LABELS[
-                                r.tournament.timeControl as TimeControl
-                              ] ?? r.tournament.timeControl}
-                            </p>
                           </td>
                           <td className="px-4 py-2.5 text-muted">
                             {formatDate(r.tournament.date)}
                           </td>
                           <td className="px-4 py-2.5">
                             <Badge variant="blue">
-                              {PLATFORM_LABELS[r.tournament.platform as Platform] ??
-                                r.tournament.platform}
+                              {PLATFORM_LABELS[
+                                r.tournament.platform as Platform
+                              ] ?? r.tournament.platform}
                             </Badge>
                           </td>
                           <td className="px-4 py-2.5 text-center">
                             <RankPill rank={r.rank} />
                           </td>
                           <td className="px-4 py-2.5 text-right font-semibold tabular-nums">
-                            {r.points}
+                            {r.points ?? 0}
                           </td>
                         </tr>
                       ))}
@@ -261,6 +428,11 @@ export default function MemberPublicPage() {
                 </div>
               </>
             )}
+
+            <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
+              <Link2 className="h-3.5 w-3.5" aria-hidden />
+              Lien permanent : /membres/{id}
+            </p>
           </>
         )}
       </main>

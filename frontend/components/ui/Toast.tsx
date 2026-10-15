@@ -112,7 +112,7 @@ export function ToastContainer() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2 sm:bottom-6 sm:right-6"
+      className="pointer-events-none fixed bottom-0 right-0 z-[100] flex w-full max-w-sm flex-col gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-6 sm:right-6 sm:w-auto sm:p-0"
       aria-live="polite"
       aria-relevant="additions"
     >

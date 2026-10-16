@@ -55,26 +55,18 @@ function buildFilters(now = new Date()): Filter[] {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
     return (
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-yellow-900 shadow-sm">
-        1
-      </span>
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-yellow-900 shadow-sm">1</span>
     );
   if (rank === 2)
     return (
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700">
-        2
-      </span>
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700">2</span>
     );
   if (rank === 3)
     return (
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-xs font-bold text-amber-50">
-        3
-      </span>
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-xs font-bold text-amber-50">3</span>
     );
   return (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
-      {rank}
-    </span>
+    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">{rank}</span>
   );
 }
 
@@ -83,7 +75,6 @@ function Podium({ players }: { players: Player[] }) {
   if (top.length < 1) return null;
   const orders = [top[1], top[0], top[2]];
   const heights = ['h-16', 'h-24', 'h-14'];
-
   return (
     <div className="mb-6 flex items-end justify-center gap-2 sm:gap-3">
       {orders.map((p, i) => {
@@ -98,13 +89,9 @@ function Podium({ players }: { players: Player[] }) {
             <Avatar
               name={p.fullName || p.pseudo}
               size={isFirst ? 'md' : 'sm'}
-              className={cn(
-                isFirst && 'h-10 w-10 text-xs ring-2 ring-yellow-400 ring-offset-1'
-              )}
+              className={cn(isFirst && 'h-10 w-10 text-xs ring-2 ring-yellow-400 ring-offset-1')}
             />
-            <p className="mt-1.5 max-w-full truncate text-center text-xs font-semibold text-gray-900 hover:text-brand sm:text-sm">
-              {p.pseudo}
-            </p>
+            <p className="mt-1.5 max-w-full truncate text-center text-xs font-semibold text-gray-900 hover:text-brand sm:text-sm">{p.pseudo}</p>
             <p className="text-[11px] tabular-nums text-muted">{p.points} pts</p>
             <div
               className={cn(
@@ -126,10 +113,7 @@ function Podium({ players }: { players: Player[] }) {
 
 function filterSubtitle(filter: Filter, now: Date): string | null {
   if (filter.id === 'monthly') {
-    const label = now.toLocaleDateString('fr-FR', {
-      month: 'long',
-      year: 'numeric',
-    });
+    const label = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
   if (filter.id === 'yearly') return `Année ${now.getFullYear()}`;
@@ -169,7 +153,7 @@ export default function HomePage() {
       <SiteHeader
         action={
           <Link
-            href="/login"
+            href="/admin"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent-dark bg-accent px-2.5 py-1.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-accent-dark sm:gap-2 sm:px-3.5 sm:py-2"
           >
             <Settings className="h-4 w-4" aria-hidden />
@@ -180,18 +164,11 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            Classements officiels
-          </h1>
-          <p className="mt-1.5 text-sm text-muted">
-            Club d'échecs Chess Gabon — tournois multi-cadences
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Classements officiels</h1>
+          <p className="mt-1.5 text-sm text-muted">Club d'échecs Chess Gabon — tournois multi-cadences</p>
         </div>
 
-        <nav
-          aria-label="Filtres de classement"
-          className="mb-8 flex flex-wrap items-center justify-center gap-2"
-        >
+        <nav aria-label="Filtres de classement" className="mb-8 flex flex-wrap items-center justify-center gap-2">
           {filters.map((f) => {
             const Icon = f.icon;
             return (
@@ -215,25 +192,16 @@ export default function HomePage() {
         </nav>
 
         {status === 'loading' && <RankingSkeleton />}
-
-        {status === 'idle' && rankings.length >= 1 && (
-          <Podium players={rankings} />
-        )}
+        {status === 'idle' && rankings.length >= 1 && <Podium players={rankings} />}
 
         {status !== 'loading' && (
           <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">
-                  Classement {activeFilter.label}
-                </h2>
-                {periodHint && (
-                  <p className="text-xs text-muted">{periodHint}</p>
-                )}
+                <h2 className="text-sm font-semibold text-gray-900">Classement {activeFilter.label}</h2>
+                {periodHint && <p className="text-xs text-muted">{periodHint}</p>}
               </div>
-              <Badge variant="gray">
-                {`${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}
-              </Badge>
+              <Badge variant="gray">{`${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}</Badge>
             </div>
 
             {status === 'error' && (
@@ -242,11 +210,7 @@ export default function HomePage() {
                 title="Connexion impossible"
                 message="Impossible de contacter le serveur. Vérifiez votre connexion réseau."
                 action={
-                  <button
-                    type="button"
-                    onClick={() => void loadRankings(activeFilter)}
-                    className="text-sm font-medium text-brand hover:underline"
-                  >
+                  <button type="button" onClick={() => void loadRankings(activeFilter)} className="text-sm font-medium text-brand hover:underline">
                     Réessayer
                   </button>
                 }
@@ -256,33 +220,11 @@ export default function HomePage() {
             {status === 'idle' && rankings.length === 0 && (
               <EmptyState
                 variant="empty"
-                title={
-                  activeFilter.id === 'monthly' || activeFilter.id === 'yearly'
-                    ? 'Aucun résultat sur cette période'
-                    : 'Classement vide'
-                }
+                title={activeFilter.id === 'monthly' || activeFilter.id === 'yearly' ? 'Aucun résultat sur cette période' : 'Classement vide'}
                 message={
                   activeFilter.id === 'monthly' || activeFilter.id === 'yearly'
                     ? `Pas encore de tournoi enregistré pour ${periodHint ?? 'cette période'}.`
-                    : 'Aucun joueur dans ce classement pour le moment. Importez des résultats depuis l’administration.'
-                }
-                action={
-                  activeFilter.id !== 'general' ? (
-                    <button
-                      type="button"
-                      onClick={() => void loadRankings(filters[0])}
-                      className="text-sm font-medium text-brand hover:underline"
-                    >
-                      Voir le classement général
-                    </button>
-                  ) : (
-                    <Link
-                      href="/tournois"
-                      className="text-sm font-medium text-brand hover:underline"
-                    >
-                      Voir les tournois
-                    </Link>
-                  )
+                    : 'Aucun joueur dans ce classement pour le moment.'
                 }
               />
             )}
@@ -291,35 +233,20 @@ export default function HomePage() {
               <>
                 <ul className="stagger-children divide-y divide-border sm:hidden">
                   {rankings.map((p) => (
-                    <li
-                      key={p.id}
-                      className="flex items-center gap-3 px-4 py-3.5"
-                    >
+                    <li key={p.id} className="flex items-center gap-3 px-4 py-3.5">
                       <RankBadge rank={p.rank} />
                       <Avatar name={p.fullName || p.pseudo} size="sm" />
                       <div className="min-w-0 flex-1">
-                        <Link
-                          href={`/membres/${p.id}`}
-                          className="block truncate font-medium text-blue hover:underline"
-                        >
-                          {p.pseudo || '—'}
-                        </Link>
-                        <p className="truncate text-xs text-muted">
-                          {p.fullName || '—'}
-                        </p>
+                        <Link href={`/membres/${p.id}`} className="block truncate font-medium text-blue hover:underline">{p.pseudo || '—'}</Link>
+                        <p className="truncate text-xs text-muted">{p.fullName || '—'}</p>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-sm font-semibold tabular-nums">
                           {p.points ?? '—'}
-                          <span className="ml-0.5 text-xs font-normal text-muted">
-                            pts
-                          </span>
+                          <span className="ml-0.5 text-xs font-normal text-muted">pts</span>
                         </p>
                         <p className="mt-0.5 text-xs text-muted">
-                          <Swords
-                            className="mr-0.5 inline h-3 w-3"
-                            aria-hidden
-                          />
+                          <Swords className="mr-0.5 inline h-3 w-3" aria-hidden />
                           {p.tournaments ?? 0}
                           {p.rawPoints != null ? ` · ${p.rawPoints}` : ''}
                         </p>
@@ -327,61 +254,33 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-
                 <div className="hidden overflow-x-auto sm:block">
                   <table className="w-full min-w-[640px] text-left text-sm">
                     <thead>
                       <tr className="bg-brand text-white">
-                        <th className="w-16 px-4 py-3 text-center font-medium">
-                          Rang
-                        </th>
+                        <th className="w-16 px-4 py-3 text-center font-medium">Rang</th>
                         <th className="px-4 py-3 font-medium">Joueur</th>
                         <th className="px-4 py-3 font-medium">Nom complet</th>
-                        <th className="px-4 py-3 text-right font-medium">
-                          Points
-                        </th>
-                        <th className="px-4 py-3 text-right font-medium">
-                          Score brut
-                        </th>
-                        <th className="px-4 py-3 text-right font-medium">
-                          Tournois
-                        </th>
+                        <th className="px-4 py-3 text-right font-medium">Points</th>
+                        <th className="px-4 py-3 text-right font-medium">Score brut</th>
+                        <th className="px-4 py-3 text-right font-medium">Tournois</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {rankings.map((p) => (
                         <tr key={p.id} className="table-row-interactive">
-                          <td className="px-4 py-3 text-center">
-                            <RankBadge rank={p.rank} />
-                          </td>
+                          <td className="px-4 py-3 text-center"><RankBadge rank={p.rank} /></td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
-                              <Avatar
-                                name={p.fullName || p.pseudo}
-                                size="sm"
-                              />
-                              <Link
-                                href={`/membres/${p.id}`}
-                                className="font-medium text-blue hover:underline"
-                              >
-                                {p.pseudo || '—'}
-                              </Link>
+                              <Avatar name={p.fullName || p.pseudo} size="sm" />
+                              <Link href={`/membres/${p.id}`} className="font-medium text-blue hover:underline">{p.pseudo || '—'}</Link>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-muted">
-                            {p.fullName || '—'}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                            {p.points ?? '—'}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums text-muted">
-                            {p.rawPoints ?? '—'}
-                          </td>
+                          <td className="px-4 py-3 text-muted">{p.fullName || '—'}</td>
+                          <td className="px-4 py-3 text-right font-semibold tabular-nums">{p.points ?? '—'}</td>
+                          <td className="px-4 py-3 text-right tabular-nums text-muted">{p.rawPoints ?? '—'}</td>
                           <td className="px-4 py-3 text-right">
-                            <Badge
-                              variant="gray"
-                              className="inline-flex items-center gap-1"
-                            >
+                            <Badge variant="gray" className="inline-flex items-center gap-1">
                               <Swords className="h-3 w-3" aria-hidden />
                               {p.tournaments ?? 0}
                             </Badge>
@@ -396,7 +295,6 @@ export default function HomePage() {
           </div>
         )}
       </main>
-
       <Footer />
     </div>
   );

@@ -23,6 +23,7 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -40,19 +41,33 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    closeBtnRef.current?.focus();
+
+    const t = window.setTimeout(() => closeBtnRef.current?.focus(), 0);
 
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') closeMenu();
     }
     window.addEventListener('keydown', onKey);
+
     return () => {
-      document.body.style.overflow = prev;
+      window.clearTimeout(t);
+      document.body.style.overflow = prevOverflow;
       window.removeEventListener('keydown', onKey);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  function closeMenu() {
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active.closest('[data-mobile-drawer]')) {
+      active.blur();
+    }
+    setOpen(false);
+    window.setTimeout(() => menuBtnRef.current?.focus(), 0);
+  }
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -119,12 +134,14 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
             )}
 
             <button
+              ref={menuBtnRef}
               type="button"
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100 active:bg-gray-200 sm:hidden"
               aria-expanded={open}
-              aria-controls={panelId}
+              aria-controls={open ? panelId : undefined}
+              aria-haspopup="dialog"
               aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
-              onClick={() => setOpen((v) => !v)}
+              onClick={() => (open ? closeMenu() : setOpen(true))}
             >
               {open ? (
                 <X className="h-5 w-5" aria-hidden />
@@ -136,102 +153,91 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
         </div>
       </header>
 
-      <div
-        className={cn(
-          'fixed inset-0 z-40 sm:hidden',
-          open ? 'pointer-events-auto' : 'pointer-events-none'
-        )}
-        aria-hidden={!open}
-      >
-        <button
-          type="button"
-          tabIndex={open ? 0 : -1}
-          aria-label="Fermer le menu"
-          className={cn(
-            'absolute inset-0 bg-black/40 transition-opacity duration-300',
-            open ? 'opacity-100' : 'opacity-0'
-          )}
-          onClick={() => setOpen(false)}
-        />
+      {open && (
+        <div data-mobile-drawer className="fixed inset-0 z-40 sm:hidden">
+          <button
+            type="button"
+            aria-label="Fermer le menu"
+            className="absolute inset-0 bg-black/40 animate-fade-in"
+            onClick={closeMenu}
+          />
 
-        <div
-          id={panelId}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu de navigation"
-          className={cn(
-            'absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col bg-white shadow-xl transition-transform duration-300 ease-out',
-            open ? 'translate-x-0' : 'translate-x-full'
-          )}
-        >
-          <div className="flex h-12 items-center justify-between border-b border-border px-4 pt-safe">
-            <p className="text-sm font-semibold text-gray-900">Menu</p>
-            <button
-              ref={closeBtnRef}
-              type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
-              aria-label="Fermer le menu"
-              onClick={() => setOpen(false)}
-            >
-              <X className="h-5 w-5" aria-hidden />
-            </button>
-          </div>
-
-          <nav
-            aria-label="Navigation mobile"
-            className="flex-1 overflow-y-auto px-3 py-4"
+          <div
+            id={panelId}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navigation"
+            className="absolute right-0 top-0 flex h-full w-[min(100%,20rem)] flex-col bg-white shadow-xl animate-slide-in"
           >
-            <ul className="space-y-1">
-              {NAV.map((item) => {
-                const active = isActive(item.href);
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors',
-                        active
-                          ? 'bg-brand-light text-brand-dark'
-                          : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
-                      )}
-                      onClick={() => setOpen(false)}
-                    >
-                      <span
+            <div className="flex h-12 items-center justify-between border-b border-border px-4 pt-safe">
+              <p className="text-sm font-semibold text-gray-900">Menu</p>
+              <button
+                ref={closeBtnRef}
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
+                aria-label="Fermer le menu"
+                onClick={closeMenu}
+              >
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            </div>
+
+            <nav
+              aria-label="Navigation mobile"
+              className="flex-1 overflow-y-auto px-3 py-4"
+            >
+              <ul className="space-y-1">
+                {NAV.map((item) => {
+                  const active = isActive(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'flex h-9 w-9 items-center justify-center rounded-lg',
+                          'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors',
                           active
-                            ? 'bg-brand text-white'
-                            : 'bg-surface text-muted'
+                            ? 'bg-brand-light text-brand-dark'
+                            : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                         )}
+                        onClick={closeMenu}
                       >
-                        <Icon className="h-4 w-4" aria-hidden />
-                      </span>
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                        <span
+                          className={cn(
+                            'flex h-9 w-9 items-center justify-center rounded-lg',
+                            active
+                              ? 'bg-brand text-white'
+                              : 'bg-surface text-muted'
+                          )}
+                        >
+                          <Icon className="h-4 w-4" aria-hidden />
+                        </span>
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
 
-            {action && (
-              <div className="mt-6 border-t border-border pt-4">
-                <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
-                  Administration
-                </p>
-                <div className="px-1" onClick={() => setOpen(false)}>
-                  {action}
+              {action && (
+                <div className="mt-6 border-t border-border pt-4">
+                  <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
+                    Administration
+                  </p>
+                  <div className="px-1" onClick={closeMenu}>
+                    {action}
+                  </div>
                 </div>
-              </div>
-            )}
-          </nav>
+              )}
+            </nav>
 
-          <div className="border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-xs text-muted">
-            Chess Gabon · Libreville
+            <div className="border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-xs text-muted">
+              Chess Gabon · Libreville
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

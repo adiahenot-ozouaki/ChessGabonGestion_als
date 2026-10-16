@@ -36,6 +36,10 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
   }, []);
 
   useEffect(() => {
+    const active = document.activeElement as HTMLElement | null;
+    if (active?.closest?.('[data-mobile-drawer]')) {
+      active.blur();
+    }
     setOpen(false);
   }, [pathname]);
 
@@ -61,10 +65,16 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
   }, [open]);
 
   function closeMenu() {
+    const drawer = document.querySelector('[data-mobile-drawer]');
     const active = document.activeElement as HTMLElement | null;
-    if (active && active.closest('[data-mobile-drawer]')) {
+    if (active && drawer?.contains(active)) {
+      active.blur();
+    } else if (active?.closest?.('[data-mobile-drawer]')) {
       active.blur();
     }
+    drawer?.querySelectorAll<HTMLElement>('a, button, [tabindex]').forEach((el) => {
+      if (el === document.activeElement) el.blur();
+    });
     setOpen(false);
     window.setTimeout(() => menuBtnRef.current?.focus(), 0);
   }

@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { AlertCircle, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { AlertCircle, Crown, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Button } from '@/components/ui/Button';
@@ -101,10 +101,10 @@ export default function LoginPage() {
         <div className="animate-scale-in w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-6 text-center">
             <div
-              className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-light text-2xl"
+              className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-light text-brand"
               aria-hidden
             >
-              ♟
+              <Crown className="h-6 w-6" />
             </div>
             <h1 className="text-xl font-semibold text-gray-900">
               Connexion administrateur
@@ -221,7 +221,7 @@ export default function LoginPage() {
 
           <p className="mt-4 text-center">
             <Link href="/" className="text-sm text-muted transition hover:text-brand">
-              ← Retour au classement
+              Retour au classement
             </Link>
           </p>
         </div>

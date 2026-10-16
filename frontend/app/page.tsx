@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import {
+  BarChart3,
+  Calendar,
+  Flame,
+  Settings,
+  Swords,
+  Timer,
+  Trophy,
+  Zap,
+} from 'lucide-react';
 import { Footer } from '@/components/Footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Avatar } from '@/components/ui/Avatar';
@@ -17,28 +26,28 @@ interface Filter {
   id: string;
   label: string;
   query: string;
-  icon: string;
+  icon: typeof Trophy;
 }
 
 function buildFilters(now = new Date()): Filter[] {
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
   return [
-    { id: 'general', label: 'Général', query: '', icon: '🏆' },
-    { id: 'bullet', label: 'Bullet', query: '?timeControl=BULLET', icon: '⚡' },
-    { id: 'blitz', label: 'Blitz', query: '?timeControl=BLITZ', icon: '🔥' },
-    { id: 'rapid', label: 'Rapide', query: '?timeControl=RAPID', icon: '⏱' },
+    { id: 'general', label: 'Général', query: '', icon: Trophy },
+    { id: 'bullet', label: 'Bullet', query: '?timeControl=BULLET', icon: Zap },
+    { id: 'blitz', label: 'Blitz', query: '?timeControl=BLITZ', icon: Flame },
+    { id: 'rapid', label: 'Rapide', query: '?timeControl=RAPID', icon: Timer },
     {
       id: 'monthly',
       label: 'Mensuel',
       query: `?type=monthly&month=${month}&year=${year}`,
-      icon: '📅',
+      icon: Calendar,
     },
     {
       id: 'yearly',
       label: 'Annuel',
       query: `?type=yearly&year=${year}`,
-      icon: '📊',
+      icon: BarChart3,
     },
   ];
 }
@@ -46,18 +55,26 @@ function buildFilters(now = new Date()): Filter[] {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
     return (
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-yellow-900 shadow-sm">1</span>
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-yellow-900 shadow-sm">
+        1
+      </span>
     );
   if (rank === 2)
     return (
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700">2</span>
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700">
+        2
+      </span>
     );
   if (rank === 3)
     return (
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-xs font-bold text-amber-50">3</span>
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-600 text-xs font-bold text-amber-50">
+        3
+      </span>
     );
   return (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">{rank}</span>
+    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
+      {rank}
+    </span>
   );
 }
 
@@ -81,12 +98,14 @@ function Podium({ players }: { players: Player[] }) {
             <Avatar
               name={p.fullName || p.pseudo}
               size={isFirst ? 'md' : 'sm'}
-              className={cn(isFirst && 'h-10 w-10 text-xs ring-2 ring-yellow-400 ring-offset-1')}
+              className={cn(
+                isFirst && 'h-10 w-10 text-xs ring-2 ring-yellow-400 ring-offset-1'
+              )}
             />
             <p className="mt-1.5 max-w-full truncate text-center text-xs font-semibold text-gray-900 hover:text-brand sm:text-sm">
               {p.pseudo}
             </p>
-            <p className="text-[11px] text-muted tabular-nums">{p.points} pts</p>
+            <p className="text-[11px] tabular-nums text-muted">{p.points} pts</p>
             <div
               className={cn(
                 'mt-2 flex w-full items-start justify-center rounded-t-lg pt-2 text-base font-bold text-white',
@@ -96,7 +115,7 @@ function Podium({ players }: { players: Player[] }) {
                 p.rank === 3 && 'bg-amber-600'
               )}
             >
-              {p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : '🥉'}
+              {p.rank}
             </div>
           </Link>
         );
@@ -107,7 +126,10 @@ function Podium({ players }: { players: Player[] }) {
 
 function filterSubtitle(filter: Filter, now: Date): string | null {
   if (filter.id === 'monthly') {
-    const label = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const label = now.toLocaleDateString('fr-FR', {
+      month: 'long',
+      year: 'numeric',
+    });
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
   if (filter.id === 'yearly') return `Année ${now.getFullYear()}`;
@@ -166,29 +188,37 @@ export default function HomePage() {
           </p>
         </div>
 
-        <nav aria-label="Filtres de classement" className="mb-8 flex flex-wrap items-center justify-center gap-2">
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => void loadRankings(f)}
-              aria-pressed={activeFilter.id === f.id}
-              className={cn(
-                'pill inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium',
-                activeFilter.id === f.id
-                  ? 'border-brand bg-brand text-white shadow-md ring-2 ring-brand/20'
-                  : 'border-border bg-white text-gray-600'
-              )}
-            >
-              <span aria-hidden>{f.icon}</span>
-              {f.label}
-            </button>
-          ))}
+        <nav
+          aria-label="Filtres de classement"
+          className="mb-8 flex flex-wrap items-center justify-center gap-2"
+        >
+          {filters.map((f) => {
+            const Icon = f.icon;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => void loadRankings(f)}
+                aria-pressed={activeFilter.id === f.id}
+                className={cn(
+                  'pill inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium',
+                  activeFilter.id === f.id
+                    ? 'border-brand bg-brand text-white shadow-md ring-2 ring-brand/20'
+                    : 'border-border bg-white text-gray-600'
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden />
+                {f.label}
+              </button>
+            );
+          })}
         </nav>
 
         {status === 'loading' && <RankingSkeleton />}
 
-        {status === 'idle' && rankings.length >= 1 && <Podium players={rankings} />}
+        {status === 'idle' && rankings.length >= 1 && (
+          <Podium players={rankings} />
+        )}
 
         {status !== 'loading' && (
           <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
@@ -197,7 +227,9 @@ export default function HomePage() {
                 <h2 className="text-sm font-semibold text-gray-900">
                   Classement {activeFilter.label}
                 </h2>
-                {periodHint && <p className="text-xs text-muted">{periodHint}</p>}
+                {periodHint && (
+                  <p className="text-xs text-muted">{periodHint}</p>
+                )}
               </div>
               <Badge variant="gray">
                 {`${rankings.length} joueur${rankings.length !== 1 ? 's' : ''}`}
@@ -244,7 +276,10 @@ export default function HomePage() {
                       Voir le classement général
                     </button>
                   ) : (
-                    <Link href="/tournois" className="text-sm font-medium text-brand hover:underline">
+                    <Link
+                      href="/tournois"
+                      className="text-sm font-medium text-brand hover:underline"
+                    >
                       Voir les tournois
                     </Link>
                   )
@@ -254,24 +289,38 @@ export default function HomePage() {
 
             {status === 'idle' && rankings.length > 0 && (
               <>
-                <ul className="divide-y divide-border sm:hidden">
+                <ul className="stagger-children divide-y divide-border sm:hidden">
                   {rankings.map((p) => (
-                    <li key={p.id} className="flex items-center gap-3 px-4 py-3.5">
+                    <li
+                      key={p.id}
+                      className="flex items-center gap-3 px-4 py-3.5"
+                    >
                       <RankBadge rank={p.rank} />
                       <Avatar name={p.fullName || p.pseudo} size="sm" />
                       <div className="min-w-0 flex-1">
-                        <Link href={`/membres/${p.id}`} className="block truncate font-medium text-blue hover:underline">
+                        <Link
+                          href={`/membres/${p.id}`}
+                          className="block truncate font-medium text-blue hover:underline"
+                        >
                           {p.pseudo || '—'}
                         </Link>
-                        <p className="truncate text-xs text-muted">{p.fullName || '—'}</p>
+                        <p className="truncate text-xs text-muted">
+                          {p.fullName || '—'}
+                        </p>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-sm font-semibold tabular-nums">
                           {p.points ?? '—'}
-                          <span className="ml-0.5 text-xs font-normal text-muted">pts</span>
+                          <span className="ml-0.5 text-xs font-normal text-muted">
+                            pts
+                          </span>
                         </p>
                         <p className="mt-0.5 text-xs text-muted">
-                          ♞ {p.tournaments ?? 0}
+                          <Swords
+                            className="mr-0.5 inline h-3 w-3"
+                            aria-hidden
+                          />
+                          {p.tournaments ?? 0}
                           {p.rawPoints != null ? ` · ${p.rawPoints}` : ''}
                         </p>
                       </div>
@@ -283,30 +332,60 @@ export default function HomePage() {
                   <table className="w-full min-w-[640px] text-left text-sm">
                     <thead>
                       <tr className="bg-brand text-white">
-                        <th className="w-16 px-4 py-3 text-center font-medium">Rang</th>
+                        <th className="w-16 px-4 py-3 text-center font-medium">
+                          Rang
+                        </th>
                         <th className="px-4 py-3 font-medium">Joueur</th>
                         <th className="px-4 py-3 font-medium">Nom complet</th>
-                        <th className="px-4 py-3 text-right font-medium">Points</th>
-                        <th className="px-4 py-3 text-right font-medium">Score brut</th>
-                        <th className="px-4 py-3 text-right font-medium">Tournois</th>
+                        <th className="px-4 py-3 text-right font-medium">
+                          Points
+                        </th>
+                        <th className="px-4 py-3 text-right font-medium">
+                          Score brut
+                        </th>
+                        <th className="px-4 py-3 text-right font-medium">
+                          Tournois
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {rankings.map((p) => (
                         <tr key={p.id} className="table-row-interactive">
-                          <td className="px-4 py-3 text-center"><RankBadge rank={p.rank} /></td>
+                          <td className="px-4 py-3 text-center">
+                            <RankBadge rank={p.rank} />
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
-                              <Avatar name={p.fullName || p.pseudo} size="sm" />
-                              <Link href={`/membres/${p.id}`} className="font-medium text-blue hover:underline">
+                              <Avatar
+                                name={p.fullName || p.pseudo}
+                                size="sm"
+                              />
+                              <Link
+                                href={`/membres/${p.id}`}
+                                className="font-medium text-blue hover:underline"
+                              >
                                 {p.pseudo || '—'}
                               </Link>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-muted">{p.fullName || '—'}</td>
-                          <td className="px-4 py-3 text-right font-semibold tabular-nums">{p.points ?? '—'}</td>
-                          <td className="px-4 py-3 text-right text-muted tabular-nums">{p.rawPoints ?? '—'}</td>
-                          <td className="px-4 py-3 text-right"><Badge variant="gray">♞ {p.tournaments ?? 0}</Badge></td>
+                          <td className="px-4 py-3 text-muted">
+                            {p.fullName || '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                            {p.points ?? '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right tabular-nums text-muted">
+                            {p.rawPoints ?? '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Badge
+                              variant="gray"
+                              className="inline-flex items-center gap-1"
+                            >
+                              <Swords className="h-3 w-3" aria-hidden />
+                              {p.tournaments ?? 0}
+                            </Badge>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

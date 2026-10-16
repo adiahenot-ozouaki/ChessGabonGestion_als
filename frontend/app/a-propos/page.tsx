@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
+  Crown,
   ExternalLink,
   Mail,
   MapPin,
@@ -35,7 +36,6 @@ const FEATURES = [
   },
 ] as const;
 
-/** Points de championnat attribués selon le rang (règlement club). */
 const CHAMPIONSHIP_POINTS: { rank: string; points: number }[] = [
   { rank: '1er', points: 20 },
   { rank: '2e', points: 16 },
@@ -56,13 +56,13 @@ export default function AboutPage() {
       <SiteHeader />
 
       <main className="mx-auto max-w-3xl flex-1 px-4 py-10 sm:px-6">
-        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+        <div className="animate-scale-in overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
           <div className="relative flex flex-col items-center gap-4 bg-gradient-to-br from-brand via-brand to-brand-dark px-6 py-10 text-center text-white sm:flex-row sm:text-left">
             <div
-              className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-4xl shadow-inner ring-1 ring-white/20"
+              className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-inner ring-1 ring-white/20"
               aria-hidden
             >
-              ♟
+              <Crown className="h-10 w-10" />
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
@@ -109,7 +109,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <section className="mt-6 rounded-xl border border-border bg-white p-6 shadow-sm">
+        <section className="animate-fade-in-up mt-6 rounded-xl border border-border bg-white p-6 shadow-sm">
           <h2 className="text-base font-semibold text-gray-900">
             Points de championnat
           </h2>

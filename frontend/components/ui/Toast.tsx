@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { AlertCircle, Check, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   subscribeToast,
@@ -21,11 +21,11 @@ const accent: Record<ToastType, string> = {
   info: 'bg-blue-500',
 };
 
-const icons: Record<ToastType, string> = {
-  success: '✓',
-  error: '!',
-  info: 'i',
-};
+const icons = {
+  success: Check,
+  error: AlertCircle,
+  info: Info,
+} as const;
 
 function ToastItem({
   toast,
@@ -36,6 +36,7 @@ function ToastItem({
 }) {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const Icon = icons[toast.type];
 
   const dismiss = useCallback(() => {
     setLeaving(true);
@@ -66,12 +67,12 @@ function ToastItem({
     >
       <span
         className={cn(
-          'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white',
+          'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white',
           accent[toast.type]
         )}
         aria-hidden
       >
-        {icons[toast.type]}
+        <Icon className="h-3.5 w-3.5" />
       </span>
       <p className="flex-1 pt-0.5 leading-snug text-gray-800">{toast.message}</p>
       <button

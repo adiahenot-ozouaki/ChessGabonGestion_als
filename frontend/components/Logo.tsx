@@ -1,5 +1,6 @@
-import { cn } from '@/lib/utils';
+import { Crown } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
   className?: string;
@@ -13,10 +14,13 @@ export function Logo({ className, href = '/', size = 'md' }: LogoProps) {
       <div
         className={cn(
           'flex items-center justify-center rounded-xl bg-brand text-white shadow-sm',
-          size === 'sm' ? 'h-8 w-8 text-base' : 'h-10 w-10 text-xl'
+          size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
         )}
       >
-        ♟
+        <Crown
+          className={cn(size === 'sm' ? 'h-4 w-4' : 'h-5 w-5')}
+          aria-hidden
+        />
       </div>
       <div className="leading-tight">
         <span

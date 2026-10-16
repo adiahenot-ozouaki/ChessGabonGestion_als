@@ -7,7 +7,12 @@ import { AlertCircle, Crown, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Button } from '@/components/ui/Button';
-import { BASE_URL } from '@/lib/api';
+import {
+  BASE_URL,
+  extractAccessToken,
+  getToken,
+  setSession,
+} from '@/lib/api';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
@@ -29,8 +34,12 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
 
   useEffect(() => {
+    if (getToken()) {
+      router.replace('/admin');
+      return;
+    }
     emailRef.current?.focus();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (status === 'error' && errorMsg) {
@@ -69,11 +78,20 @@ export default function LoginPage() {
         setStatus('error');
         return;
       }
-      const data = (await res.json()) as LoginResponse;
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const data: unknown = await res.json();
+      const token = extractAccessToken(data);
+      if (!token) {
+        setErrorMsg('Réponse serveur invalide (token manquant).');
+        setStatus('error');
+        return;
+      }
+      const user =
+        data && typeof data === 'object' && 'user' in data
+          ? (data as LoginResponse).user
+          : data;
+      setSession(token, user);
       toast.success('Connexion réussie');
-      router.push('/admin');
+      router.replace('/admin');
     } catch {
       setErrorMsg(
         'Impossible de contacter le serveur. Vérifiez votre connexion.'
@@ -197,7 +215,9 @@ export default function LoginPage() {
                   onClick={() => setShowPwd((v) => !v)}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 transition hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                   aria-label={
-                    showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+                    showPwd
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
                   }
                 >
                   {showPwd ? (

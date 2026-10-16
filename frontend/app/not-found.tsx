@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import { Mail, Phone } from 'lucide-react';
+import { Crown, Mail, Phone } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 import { SiteHeader } from '@/components/SiteHeader';
 
-/** Coordonnées bureau — à mettre à jour si besoin. */
 const ADMIN_CONTACTS = [
   {
     name: 'Secrétariat club',
@@ -24,10 +23,10 @@ export default function NotFound() {
 
       <main className="mx-auto flex max-w-lg flex-1 flex-col items-center justify-center px-4 py-16 text-center">
         <div
-          className="mb-2 flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-light text-4xl"
+          className="mb-2 flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-light text-brand"
           aria-hidden
         >
-          ♟
+          <Crown className="h-8 w-8" />
         </div>
         <p className="text-6xl font-bold tracking-tight text-brand">404</p>
         <h1 className="mt-3 text-xl font-semibold text-gray-900">

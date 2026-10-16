@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, clearSession, getToken } from '@/lib/api';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ interface PreviewData {
 }
 
 export default function ImportChessComForm() {
+  const router = useRouter();
   const [url, setUrl] = useState('');
   const [createMissing, setCreateMissing] = useState(true);
   const [liveRefresh, setLiveRefresh] = useState(false);
@@ -36,8 +38,23 @@ export default function ImportChessComForm() {
   const [summary, setSummary] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  function handleUnauthorized() {
+    clearSession();
+    toast.error('Session expirée — reconnectez-vous.');
+    router.replace('/login');
+  }
+
+  function ensureAuth(): boolean {
+    if (!getToken()) {
+      handleUnauthorized();
+      return false;
+    }
+    return true;
+  }
+
   const loadGames = useCallback(
     async (silent = false) => {
+      if (!ensureAuth()) return;
       if (!url.trim()) {
         if (!silent) toast.error('Collez l’URL du tournoi Chess.com.');
         return;
@@ -50,6 +67,10 @@ export default function ImportChessComForm() {
         });
         const data = (await res.json().catch(() => ({}))) as PreviewData &
           { message?: string };
+        if (res.status === 401) {
+          handleUnauthorized();
+          return;
+        }
         if (!res.ok) {
           if (!silent) {
             toast.error(data.message || 'Impossible de charger les parties');
@@ -71,6 +92,7 @@ export default function ImportChessComForm() {
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [url],
   );
 
@@ -93,6 +115,7 @@ export default function ImportChessComForm() {
 
   async function handleImport(e: React.FormEvent) {
     e.preventDefault();
+    if (!ensureAuth()) return;
     if (!url.trim()) {
       toast.error('Collez l’URL du tournoi Chess.com.');
       return;
@@ -116,6 +139,10 @@ export default function ImportChessComForm() {
         timeControl?: string;
         date?: string;
       };
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
       if (!res.ok) {
         toast.error(data.message || 'Échec de l’import Chess.com');
         setStatus('error');

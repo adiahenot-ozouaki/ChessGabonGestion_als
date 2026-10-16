@@ -105,8 +105,8 @@ function MemberFormFields({ defaults }: { defaults?: Member }) {
         name="pseudo"
         label="Pseudo"
         placeholder="KingNdong"
-        required
         defaultValue={defaults?.pseudo}
+        required
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <Input
@@ -140,6 +140,8 @@ export default function AdminPage() {
   const [sortColumn, setSortColumn] = useState<SortColumn>('pseudo');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [addLoading, setAddLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncCreateMissing, setSyncCreateMissing] = useState(false);
   const [stats, setStats] = useState<{
     membersCount: number;
     tournamentsCount: number;
@@ -271,7 +273,7 @@ export default function AdminPage() {
 
   async function deleteMember(member: Member) {
     const ok = confirm(
-      `Supprimer le membre « ${member.pseudo} » ?\n\nSes résultats de tournoi seront également supprimés. Cette action est irréversible.`
+      `Supprimer le membre « ${member.pseudo} » ?\n\nSes résultats de tournoi seront également supprimés. Cette action est irréversible.`,
     );
     if (!ok) return;
     try {
@@ -289,6 +291,35 @@ export default function AdminPage() {
     }
   }
 
+  async function syncFromChessCom() {
+    setSyncLoading(true);
+    try {
+      const res = await authFetch('/chesscom/sync-members', {
+        method: 'POST',
+        body: JSON.stringify({ createMissing: syncCreateMissing }),
+      });
+      if (!res.ok) {
+        toast.error('Échec de la synchronisation Chess.com');
+        return;
+      }
+      const data = (await res.json()) as {
+        fetched: number;
+        linked: number;
+        updated: number;
+        created: number;
+        unmatched: string[];
+      };
+      toast.success(
+        `Chess.com : ${data.fetched} trouvés · ${data.linked} liés · ${data.updated} maj · ${data.created} créés`,
+      );
+      void loadMembers();
+    } catch {
+      toast.error('Impossible de contacter le serveur');
+    } finally {
+      setSyncLoading(false);
+    }
+  }
+
   function sortBy(column: SortColumn) {
     setSortColumn(column);
     setSortDirection(sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc');
@@ -298,7 +329,7 @@ export default function AdminPage() {
     .filter(({ pseudo, firstName, lastName, lichess, chesscom }) => {
       const s = searchTerm.toLowerCase();
       return [pseudo, firstName, lastName, lichess, chesscom].some((v) =>
-        v?.toLowerCase().includes(s)
+        v?.toLowerCase().includes(s),
       );
     })
     .sort((a, b) => {
@@ -357,7 +388,7 @@ export default function AdminPage() {
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30',
                   tab === t.id
                     ? 'bg-brand text-white shadow-md'
-                    : 'text-gray-600 hover:bg-brand-light hover:text-brand active:scale-[0.98]'
+                    : 'text-gray-600 hover:bg-brand-light hover:text-brand active:scale-[0.98]',
                 )}
               >
                 {t.icon}
@@ -374,19 +405,28 @@ export default function AdminPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
               <p className="text-xs font-medium text-muted">Membres</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{stats.membersCount}</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">
+                {stats.membersCount}
+              </p>
             </div>
             <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
               <p className="text-xs font-medium text-muted">Tournois</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{stats.tournamentsCount}</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">
+                {stats.tournamentsCount}
+              </p>
             </div>
             <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
               <p className="text-xs font-medium text-muted">Résultats</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{stats.resultsCount}</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">
+                {stats.resultsCount}
+              </p>
             </div>
             <div className="rounded-xl border border-border bg-white p-3.5 shadow-sm">
               <p className="text-xs font-medium text-muted">Dernier tournoi</p>
-              <p className="mt-1 truncate text-sm font-semibold text-gray-900" title={stats.lastTournamentName}>
+              <p
+                className="mt-1 truncate text-sm font-semibold text-gray-900"
+                title={stats.lastTournamentName}
+              >
                 {stats.lastTournamentName || '—'}
               </p>
             </div>
@@ -395,6 +435,29 @@ export default function AdminPage() {
 
         {tab === 'members' && (
           <div className="space-y-6">
+            <Card title="Chess.com — Club chess-gabon-1">
+              <p className="mb-3 text-sm text-muted">
+                Importe les pseudos du club Chess.com et les associe aux membres
+                locaux (champ Chess.com). Optionnel : créer les comptes absents.
+              </p>
+              <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={syncCreateMissing}
+                  onChange={(e) => setSyncCreateMissing(e.target.checked)}
+                  className="rounded border-border"
+                />
+                Créer automatiquement les membres absents (~600 comptes possibles)
+              </label>
+              <Button
+                type="button"
+                loading={syncLoading}
+                onClick={() => void syncFromChessCom()}
+              >
+                {syncLoading ? 'Synchronisation…' : 'Synchroniser depuis Chess.com'}
+              </Button>
+            </Card>
+
             <Card title="Ajouter un membre">
               <form onSubmit={addMember} className="space-y-4">
                 <MemberFormFields />
@@ -408,7 +471,11 @@ export default function AdminPage() {
               <Card
                 title={`Modifier — ${editingMember.pseudo}`}
                 action={
-                  <Button variant="ghost" size="sm" onClick={() => setEditingMember(null)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingMember(null)}
+                  >
                     Annuler
                   </Button>
                 }
@@ -434,23 +501,23 @@ export default function AdminPage() {
                 <AdminTableSkeleton />
               ) : (
                 <>
-                  <div className="mb-4">
-                    <div className="relative max-w-sm">
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="relative max-w-sm flex-1">
                       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                       <input
                         type="search"
                         placeholder="Pseudo, nom, Lichess, Chess.com…"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-white py-2.5 pl-9 pr-9 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                        className="w-full rounded-lg border border-border bg-white py-2.5 pl-9 pr-9 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                         aria-label="Rechercher un membre"
                       />
                       {searchTerm ? (
                         <button
                           type="button"
                           onClick={() => setSearchTerm('')}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:bg-gray-100"
-                          aria-label="Effacer"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                          aria-label="Effacer la recherche"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -462,7 +529,7 @@ export default function AdminPage() {
                     <EmptyState
                       variant="empty"
                       title="Aucun membre"
-                      message="Ajoutez votre premier membre ou importez un CSV."
+                      message="Ajoutez votre premier membre avec le formulaire ci-dessus, ou importez un CSV."
                     />
                   ) : filteredMembers.length === 0 ? (
                     <EmptyState
@@ -470,7 +537,11 @@ export default function AdminPage() {
                       title="Aucun résultat"
                       message="Aucun membre ne correspond à votre recherche."
                       action={
-                        <button type="button" onClick={() => setSearchTerm('')} className="text-sm font-medium text-brand hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => setSearchTerm('')}
+                          className="text-sm font-medium text-brand hover:underline"
+                        >
                           Effacer la recherche
                         </button>
                       }
@@ -479,32 +550,71 @@ export default function AdminPage() {
                     <>
                       <ul className="space-y-2 sm:hidden">
                         {filteredMembers.map((m) => (
-                          <li key={m.id} className="rounded-xl border border-border bg-white p-3 shadow-sm">
+                          <li
+                            key={m.id}
+                            className="rounded-xl border border-border bg-white p-3 shadow-sm"
+                          >
                             <div className="flex items-start gap-3">
-                              <Avatar name={`${m.firstName} ${m.lastName}`} size="sm" />
+                              <Avatar
+                                name={`${m.firstName} ${m.lastName}`}
+                                size="sm"
+                              />
                               <div className="min-w-0 flex-1">
-                                <button type="button" className="text-left font-semibold text-gray-900 hover:text-brand" onClick={() => void loadMemberResults(m.id)}>
+                                <button
+                                  type="button"
+                                  className="text-left font-semibold text-gray-900 hover:text-brand"
+                                  onClick={() => void loadMemberResults(m.id)}
+                                >
                                   {m.pseudo}
                                 </button>
-                                <p className="truncate text-xs text-muted">{m.firstName} {m.lastName}</p>
+                                <p className="truncate text-xs text-muted">
+                                  {m.firstName} {m.lastName}
+                                </p>
                                 <div className="mt-1.5 flex flex-wrap gap-1">
-                                  {m.lichess ? <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-gray-600 ring-1 ring-border">Lichess · {m.lichess}</span> : null}
-                                  {m.chesscom ? <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-gray-600 ring-1 ring-border">Chess.com · {m.chesscom}</span> : null}
-                                  {!m.lichess && !m.chesscom ? <span className="text-[10px] text-muted">Pas de comptes liés</span> : null}
+                                  {m.lichess ? (
+                                    <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-gray-600 ring-1 ring-border">
+                                      Lichess · {m.lichess}
+                                    </span>
+                                  ) : null}
+                                  {m.chesscom ? (
+                                    <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-medium text-gray-600 ring-1 ring-border">
+                                      Chess.com · {m.chesscom}
+                                    </span>
+                                  ) : null}
+                                  {!m.lichess && !m.chesscom ? (
+                                    <span className="text-[10px] text-muted">
+                                      Pas de comptes liés
+                                    </span>
+                                  ) : null}
                                 </div>
                               </div>
                               <details className="relative shrink-0">
-                                <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg text-muted hover:bg-gray-100 [&::-webkit-details-marker]:hidden" aria-label={`Actions ${m.pseudo}`}>
+                                <summary
+                                  className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg text-muted hover:bg-gray-100 [&::-webkit-details-marker]:hidden"
+                                  aria-label={`Actions ${m.pseudo}`}
+                                >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </summary>
                                 <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-border bg-white py-1 shadow-lg">
-                                  <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-gray-50" onClick={() => void loadMemberResults(m.id)}>
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-gray-50"
+                                    onClick={() => void loadMemberResults(m.id)}
+                                  >
                                     <UserRound className="h-3.5 w-3.5" /> Voir la fiche
                                   </button>
-                                  <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-gray-50" onClick={() => setEditingMember(m)}>
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-gray-50"
+                                    onClick={() => setEditingMember(m)}
+                                  >
                                     <Pencil className="h-3.5 w-3.5" /> Modifier
                                   </button>
-                                  <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50" onClick={() => void deleteMember(m)}>
+                                  <button
+                                    type="button"
+                                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"
+                                    onClick={() => void deleteMember(m)}
+                                  >
                                     <Trash2 className="h-3.5 w-3.5" /> Supprimer
                                   </button>
                                 </div>
@@ -518,15 +628,37 @@ export default function AdminPage() {
                         <table className="w-full min-w-[720px] text-left text-sm">
                           <thead>
                             <tr className="bg-brand text-white">
-                              {([['pseudo', 'Joueur'], ['firstName', 'Prénom'], ['lastName', 'Nom'], ['lichess', 'Lichess'], ['chesscom', 'Chess.com']] as [SortColumn, string][]).map(([col, label]) => (
+                              {(
+                                [
+                                  ['pseudo', 'Joueur'],
+                                  ['firstName', 'Prénom'],
+                                  ['lastName', 'Nom'],
+                                  ['lichess', 'Lichess'],
+                                  ['chesscom', 'Chess.com'],
+                                ] as [SortColumn, string][]
+                              ).map(([col, label]) => (
                                 <th key={col} className="px-3 py-2.5 font-medium">
-                                  <button type="button" onClick={() => sortBy(col)} className="inline-flex items-center gap-1.5 hover:underline">
+                                  <button
+                                    type="button"
+                                    onClick={() => sortBy(col)}
+                                    className="inline-flex items-center gap-1.5 hover:underline"
+                                  >
                                     {label}
-                                    {sortColumn === col ? (sortDirection === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />}
+                                    {sortColumn === col ? (
+                                      sortDirection === 'asc' ? (
+                                        <ArrowUp className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <ArrowDown className="h-3.5 w-3.5" />
+                                      )
+                                    ) : (
+                                      <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+                                    )}
                                   </button>
                                 </th>
                               ))}
-                              <th className="px-3 py-2.5 text-right font-medium">Actions</th>
+                              <th className="px-3 py-2.5 text-right font-medium">
+                                Actions
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border bg-white">
@@ -534,25 +666,58 @@ export default function AdminPage() {
                               <tr key={m.id} className="table-row-interactive">
                                 <td className="px-3 py-2.5">
                                   <div className="flex items-center gap-2.5">
-                                    <Avatar name={`${m.firstName} ${m.lastName}`} size="sm" />
-                                    <button type="button" className="font-medium text-gray-900 hover:text-brand hover:underline" onClick={() => void loadMemberResults(m.id)}>
+                                    <Avatar
+                                      name={`${m.firstName} ${m.lastName}`}
+                                      size="sm"
+                                    />
+                                    <button
+                                      type="button"
+                                      className="font-medium text-gray-900 hover:text-brand hover:underline"
+                                      onClick={() => void loadMemberResults(m.id)}
+                                    >
                                       {m.pseudo}
                                     </button>
                                   </div>
                                 </td>
                                 <td className="px-3 py-2.5 text-muted">{m.firstName}</td>
                                 <td className="px-3 py-2.5 text-muted">{m.lastName}</td>
-                                <td className="px-3 py-2.5">{m.lichess ? <span className="font-medium">{m.lichess}</span> : <span className="text-muted">—</span>}</td>
-                                <td className="px-3 py-2.5">{m.chesscom ? <span className="font-medium">{m.chesscom}</span> : <span className="text-muted">—</span>}</td>
+                                <td className="px-3 py-2.5">
+                                  {m.lichess ? (
+                                    <span className="font-medium">{m.lichess}</span>
+                                  ) : (
+                                    <span className="text-muted">—</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  {m.chesscom ? (
+                                    <span className="font-medium">{m.chesscom}</span>
+                                  ) : (
+                                    <span className="text-muted">—</span>
+                                  )}
+                                </td>
                                 <td className="px-3 py-2.5">
                                   <div className="flex justify-end gap-1.5">
-                                    <Button size="sm" variant="ghost" onClick={() => void loadMemberResults(m.id)} aria-label="Fiche">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => void loadMemberResults(m.id)}
+                                      aria-label="Fiche"
+                                    >
                                       <UserRound className="h-3.5 w-3.5" />
                                     </Button>
-                                    <Button size="sm" variant="secondary" onClick={() => setEditingMember(m)}>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => setEditingMember(m)}
+                                    >
                                       <Pencil className="h-3.5 w-3.5" />
                                     </Button>
-                                    <Button size="sm" variant="danger" onClick={() => void deleteMember(m)} aria-label="Supprimer">
+                                    <Button
+                                      size="sm"
+                                      variant="danger"
+                                      onClick={() => void deleteMember(m)}
+                                      aria-label="Supprimer"
+                                    >
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
                                   </div>
@@ -580,11 +745,15 @@ export default function AdminPage() {
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2 rounded-lg bg-brand-light px-3 py-2">
                     <span className="text-xs font-medium text-brand-dark">Points</span>
-                    <span className="text-sm font-bold tabular-nums text-brand-dark">{selectedMember.totalPoints}</span>
+                    <span className="text-sm font-bold tabular-nums text-brand-dark">
+                      {selectedMember.totalPoints}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg bg-surface px-3 py-2 ring-1 ring-border">
                     <span className="text-xs font-medium text-muted">Tournois</span>
-                    <span className="text-sm font-bold tabular-nums">{selectedMember.tournamentsPlayed}</span>
+                    <span className="text-sm font-bold tabular-nums">
+                      {selectedMember.tournamentsPlayed}
+                    </span>
                   </div>
                 </div>
                 {selectedMember.results?.length ? (
@@ -602,7 +771,9 @@ export default function AdminPage() {
                         {selectedMember.results.map((r) => (
                           <tr key={r.id}>
                             <td className="px-3 py-2 font-medium">{r.tournament.name}</td>
-                            <td className="px-3 py-2 text-muted">{formatDate(r.tournament.date)}</td>
+                            <td className="px-3 py-2 text-muted">
+                              {formatDate(r.tournament.date)}
+                            </td>
                             <td className="px-3 py-2 text-right">{r.rank ?? '—'}</td>
                             <td className="px-3 py-2 text-right font-semibold">{r.points}</td>
                           </tr>
@@ -611,7 +782,11 @@ export default function AdminPage() {
                     </table>
                   </div>
                 ) : (
-                  <EmptyState variant="empty" title="Pas encore de résultats" message="Ce membre n’a participé à aucun tournoi enregistré." />
+                  <EmptyState
+                    variant="empty"
+                    title="Pas encore de résultats"
+                    message="Ce membre n’a participé à aucun tournoi enregistré."
+                  />
                 )}
               </Card>
             )}

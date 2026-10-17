@@ -220,6 +220,18 @@ export default function TournamentDetailPage() {
                       <span aria-hidden>·</span>
                       <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" aria-hidden />{sortedResults.length} joueur{sortedResults.length !== 1 ? 's' : ''}</span>
                     </p>
+                    {tournament.externalUrl ? (
+                      <a
+                        href={tournament.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-xs font-medium text-blue hover:underline"
+                        title={tournament.externalUrl}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span className="truncate">{tournament.externalUrl}</span>
+                      </a>
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="blue">{PLATFORM_LABELS[tournament.platform] ?? tournament.platform}</Badge>

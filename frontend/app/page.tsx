@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Flame,
   Search,
-  Settings,
   Timer,
   Trophy,
   X,
@@ -206,17 +205,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
-      <SiteHeader
-        action={
-          <Link
-            href="/admin"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-accent-dark bg-accent px-2.5 py-1.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-accent-dark sm:gap-2 sm:px-3.5 sm:py-2"
-          >
-            <Settings className="h-4 w-4" aria-hidden />
-            <span className="hidden sm:inline">Administration</span>
-          </Link>
-        }
-      />
+      <SiteHeader />
 
       <main className="mx-auto max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-8 text-center">

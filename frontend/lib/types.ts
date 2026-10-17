@@ -27,6 +27,8 @@ export interface Tournament {
   platform: Platform;
   timeControl: TimeControl;
   date: string;
+  /** Lien public Chess.com / Lichess si importé */
+  externalUrl?: string | null;
   results?: unknown[];
 }
 

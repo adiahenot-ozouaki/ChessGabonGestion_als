@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { getStoredUser, getToken } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -33,7 +34,6 @@ interface StoredUser {
 }
 
 interface SiteHeaderProps {
-  /** Optionnel : remplace le bouton compte / connexion */
   action?: ReactNode;
 }
 
@@ -229,12 +229,18 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
               })}
             </nav>
 
+            <div className="hidden shrink-0 sm:block">
+              <ThemeToggle />
+            </div>
             <span
               className="hidden h-5 w-px shrink-0 bg-border sm:block"
               aria-hidden
             />
             <div className="hidden shrink-0 sm:block">{accountAction}</div>
 
+            <div className="sm:hidden">
+              <ThemeToggle className="h-10 w-10" />
+            </div>
             <button
               ref={menuBtnRef}
               type="button"
@@ -326,8 +332,11 @@ export function SiteHeader({ action }: SiteHeaderProps = {}) {
                 <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
                   {authed ? 'Compte' : 'Accès'}
                 </p>
-                <div className="px-1" onClick={closeMenu}>
-                  {action ? action : <AccountButton compact />}
+                <div className="flex items-center gap-2 px-1">
+                  <div className="min-w-0 flex-1" onClick={closeMenu}>
+                    {action ? action : <AccountButton compact />}
+                  </div>
+                  <ThemeToggle />
                 </div>
               </div>
             </nav>

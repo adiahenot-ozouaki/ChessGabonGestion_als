@@ -167,9 +167,13 @@ export default function TournamentsPublicPage() {
               const recent = isRecent(t.date);
               return (
                 <li key={t.id}>
-                  <Link href={`/tournois/${t.id}`}
-                    className="card-lift group flex flex-col gap-3 rounded-xl border border-border bg-white p-4 shadow-sm transition hover:border-brand/30 hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 items-start gap-3">
+                  <div className="card-lift group relative flex flex-col gap-3 rounded-xl border border-border bg-white p-4 shadow-sm transition hover:border-brand/30 hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
+                    <Link
+                      href={`/tournois/${t.id}`}
+                      className="absolute inset-0 z-0 rounded-xl"
+                      aria-label={`Voir le tournoi ${t.name}`}
+                    />
+                    <div className="relative z-10 flex min-w-0 items-start gap-3 pointer-events-none">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
                         <Calendar className="h-5 w-5" aria-hidden />
                       </div>
@@ -190,18 +194,22 @@ export default function TournamentsPublicPage() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                    <div className="relative z-10 flex flex-wrap items-center gap-2 sm:justify-end">
                       <Badge variant="blue">{PLATFORM_LABELS[t.platform as Platform] ?? t.platform}</Badge>
                       <Badge variant="gray">{TIME_CONTROL_LABELS[t.timeControl as TimeControl] ?? t.timeControl}</Badge>
                       {t.externalUrl ? (
-                        <a href={t.externalUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                        <a
+                          href={t.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 transition hover:border-brand hover:text-brand"
-                          title={t.externalUrl}>
+                          title={t.externalUrl}
+                        >
                           <ExternalLink className="h-3 w-3" aria-hidden /> Ouvrir
                         </a>
                       ) : null}
                     </div>
-                  </Link>
+                  </div>
                 </li>
               );
             })}

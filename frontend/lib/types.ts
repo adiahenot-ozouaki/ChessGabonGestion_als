@@ -10,6 +10,8 @@ export interface Player {
   points: number;
   rawPoints: number;
   tournaments: number;
+  /** Pseudo Chess.com (avatar PubAPI) */
+  chesscom?: string | null;
 }
 
 export interface Member {
@@ -27,7 +29,6 @@ export interface Tournament {
   platform: Platform;
   timeControl: TimeControl;
   date: string;
-  /** Lien public Chess.com / Lichess si importé */
   externalUrl?: string | null;
   results?: unknown[];
 }

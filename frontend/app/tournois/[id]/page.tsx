@@ -359,29 +359,44 @@ export default function TournamentDetailPage() {
                     <ul className="divide-y divide-border">
                       {round.games.map((g, gi) => {
                         const content = (
-                          <div className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3">
-                            <div className="flex min-w-0 flex-1 items-center gap-2">
-                              <span className={cn('w-5 shrink-0 text-center text-sm tabular-nums', resultTone(g.whiteResult))}>{resultLabel(g.whiteResult)}</span>
-                              <ChessComAvatar name={g.white} chesscom={g.white} size="sm" />
+                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-3.5 sm:gap-4 sm:px-5 sm:py-4">
+                            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                              <ChessComAvatar name={g.white} chesscom={g.white} size="md" className="ring-2 ring-white shadow-sm" />
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-medium text-gray-900">{g.white}{g.whiteRating != null ? <span className="ml-1.5 text-xs font-normal text-muted">({g.whiteRating})</span> : null}</p>
-                                <p className="text-[11px] text-muted">Blancs</p>
+                                <p className="truncate text-sm font-semibold text-gray-900">{g.white}</p>
+                                <p className="text-[11px] text-muted">
+                                  Blancs{g.whiteRating != null ? ` · ${g.whiteRating}` : ''}
+                                </p>
                               </div>
                             </div>
-                            <div className="hidden text-xs font-medium text-muted sm:block">vs</div>
-                            <div className="flex min-w-0 flex-1 items-center gap-2 sm:justify-end">
-                              <div className="min-w-0 text-left sm:text-right">
-                                <p className="truncate text-sm font-medium text-gray-900">{g.black}{g.blackRating != null ? <span className="ml-1.5 text-xs font-normal text-muted">({g.blackRating})</span> : null}</p>
-                                <p className="text-[11px] text-muted">Noirs</p>
+                            <div className="flex shrink-0 flex-col items-center gap-0.5">
+                              <div className="flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-sm font-bold tabular-nums shadow-sm ring-1 ring-border">
+                                <span className={resultTone(g.whiteResult)}>{resultLabel(g.whiteResult)}</span>
+                                <span className="text-muted">–</span>
+                                <span className={resultTone(g.blackResult)}>{resultLabel(g.blackResult)}</span>
                               </div>
-                              <ChessComAvatar name={g.black} chesscom={g.black} size="sm" />
-                              <span className={cn('w-5 shrink-0 text-center text-sm tabular-nums', resultTone(g.blackResult))}>{resultLabel(g.blackResult)}</span>
+                              <span className="text-[10px] font-medium uppercase tracking-wider text-muted">vs</span>
+                            </div>
+                            <div className="flex min-w-0 items-center justify-end gap-2.5 sm:gap-3">
+                              <div className="min-w-0 text-right">
+                                <p className="truncate text-sm font-semibold text-gray-900">{g.black}</p>
+                                <p className="text-[11px] text-muted">
+                                  Noirs{g.blackRating != null ? ` · ${g.blackRating}` : ''}
+                                </p>
+                              </div>
+                              <ChessComAvatar name={g.black} chesscom={g.black} size="md" className="ring-2 ring-white shadow-sm" />
                             </div>
                           </div>
                         );
                         return (
                           <li key={`${round.round}-${gi}`}>
-                            {g.url ? <a href={g.url} target="_blank" rel="noopener noreferrer" className="block transition hover:bg-gray-50">{content}</a> : content}
+                            {g.url ? (
+                              <a href={g.url} target="_blank" rel="noopener noreferrer" className="block transition hover:bg-brand-light/40">
+                                {content}
+                              </a>
+                            ) : (
+                              content
+                            )}
                           </li>
                         );
                       })}

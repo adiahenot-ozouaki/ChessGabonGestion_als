@@ -84,17 +84,14 @@ export class RankingsService {
           points: championshipPoints,
           rawPoints,
           tournaments: member.results.length,
+          chesscom: member.chesscom ?? null,
         };
       })
       .filter((member) => member.tournaments > 0)
       .sort((a, b) => {
-        // 1. Points championnat
         if (b.points !== a.points) return b.points - a.points;
-        // 2. Nombre de tournois
         if (b.tournaments !== a.tournaments) return b.tournaments - a.tournaments;
-        // 3. Score brut cumulé
         if (b.rawPoints !== a.rawPoints) return b.rawPoints - a.rawPoints;
-        // 4. Pseudo stable
         return a.pseudo.localeCompare(b.pseudo, 'fr');
       })
       .map((member, index) => ({

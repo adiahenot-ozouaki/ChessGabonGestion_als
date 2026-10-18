@@ -16,7 +16,7 @@ import {
 import { TournamentAnalysis } from '@/components/TournamentAnalysis';
 import { Footer } from '@/components/Footer';
 import { SiteHeader } from '@/components/SiteHeader';
-import { Avatar } from '@/components/ui/Avatar';
+import { ChessComAvatar } from '@/components/ui/ChessComAvatar';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -221,13 +221,8 @@ export default function TournamentDetailPage() {
                       <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" aria-hidden />{sortedResults.length} joueur{sortedResults.length !== 1 ? 's' : ''}</span>
                     </p>
                     {tournament.externalUrl ? (
-                      <a
-                        href={tournament.externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-xs font-medium text-blue hover:underline"
-                        title={tournament.externalUrl}
-                      >
+                      <a href={tournament.externalUrl} target="_blank" rel="noopener noreferrer"
+                        className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-xs font-medium text-blue hover:underline" title={tournament.externalUrl}>
                         <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
                         <span className="truncate">{tournament.externalUrl}</span>
                       </a>
@@ -245,13 +240,7 @@ export default function TournamentDetailPage() {
                 </div>
               </div>
               <div className="flex gap-1 overflow-x-auto border-b border-border px-2 pt-2 sm:px-4">
-                {(
-                  [
-                    { id: 'standings' as const, label: 'Classement', icon: Trophy },
-                    { id: 'games' as const, label: 'Parties', icon: Swords },
-                    { id: 'analysis' as const, label: 'Analyses', icon: Sparkles },
-                  ] as const
-                ).map((t) => {
+                {([{ id: 'standings' as const, label: 'Classement', icon: Trophy }, { id: 'games' as const, label: 'Parties', icon: Swords }, { id: 'analysis' as const, label: 'Analyses', icon: Sparkles }] as const).map((t) => {
                   const Icon = t.icon;
                   return (
                     <button key={t.id} type="button" onClick={() => setTab(t.id)}
@@ -279,7 +268,7 @@ export default function TournamentDetailPage() {
                         <li key={r.id}>
                           <Link href={`/membres/${r.member.id}`} className="flex items-center gap-3 px-3 py-3.5 active:bg-gray-50">
                             <RankBadge rank={r.rank} />
-                            <Avatar name={`${r.member.firstName} ${r.member.lastName}`} size="sm" />
+                            <ChessComAvatar name={`${r.member.firstName} ${r.member.lastName}`} chesscom={r.member.chesscom || r.member.pseudo} size="sm" />
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-gray-900">{r.member.pseudo}</p>
                               <p className="truncate text-xs text-muted">{r.member.firstName} {r.member.lastName}</p>
@@ -306,7 +295,7 @@ export default function TournamentDetailPage() {
                               <td className="px-3 py-2.5 text-center"><RankBadge rank={r.rank} /></td>
                               <td className="px-3 py-2.5">
                                 <div className="flex items-center gap-2.5">
-                                  <Avatar name={`${r.member.firstName} ${r.member.lastName}`} size="sm" />
+                                  <ChessComAvatar name={`${r.member.firstName} ${r.member.lastName}`} chesscom={r.member.chesscom || r.member.pseudo} size="sm" />
                                   <div className="min-w-0">
                                     <Link href={`/membres/${r.member.id}`} className="font-medium text-blue hover:underline">{r.member.pseudo}</Link>
                                     <p className="text-xs text-muted">{r.member.firstName} {r.member.lastName}</p>
@@ -373,6 +362,7 @@ export default function TournamentDetailPage() {
                           <div className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3">
                             <div className="flex min-w-0 flex-1 items-center gap-2">
                               <span className={cn('w-5 shrink-0 text-center text-sm tabular-nums', resultTone(g.whiteResult))}>{resultLabel(g.whiteResult)}</span>
+                              <ChessComAvatar name={g.white} chesscom={g.white} size="sm" />
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-medium text-gray-900">{g.white}{g.whiteRating != null ? <span className="ml-1.5 text-xs font-normal text-muted">({g.whiteRating})</span> : null}</p>
                                 <p className="text-[11px] text-muted">Blancs</p>
@@ -384,6 +374,7 @@ export default function TournamentDetailPage() {
                                 <p className="truncate text-sm font-medium text-gray-900">{g.black}{g.blackRating != null ? <span className="ml-1.5 text-xs font-normal text-muted">({g.blackRating})</span> : null}</p>
                                 <p className="text-[11px] text-muted">Noirs</p>
                               </div>
+                              <ChessComAvatar name={g.black} chesscom={g.black} size="sm" />
                               <span className={cn('w-5 shrink-0 text-center text-sm tabular-nums', resultTone(g.blackResult))}>{resultLabel(g.blackResult)}</span>
                             </div>
                           </div>

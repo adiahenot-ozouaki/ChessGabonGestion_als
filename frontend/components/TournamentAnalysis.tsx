@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ChessComAvatar } from '@/components/ui/ChessComAvatar';
 
 export interface AnalysisGame {
   white: string;
@@ -175,11 +176,7 @@ export function TournamentAnalysis({
             title="Analyse indisponible"
             message="Impossible de charger les parties depuis Chess.com."
             action={
-              <button
-                type="button"
-                onClick={onRetry}
-                className="text-sm font-medium text-brand hover:underline"
-              >
+              <button type="button" onClick={onRetry} className="text-sm font-medium text-brand hover:underline">
                 Réessayer
               </button>
             }
@@ -195,21 +192,14 @@ export function TournamentAnalysis({
                 ['Nulles', stats.draws],
               ] as const
             ).map(([label, val]) => (
-              <div
-                key={label}
-                className="rounded-xl border border-border bg-surface px-3 py-3"
-              >
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
-                  {label}
-                </p>
+              <div key={label} className="rounded-xl border border-border bg-surface px-3 py-3">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted">{label}</p>
                 <p className="mt-1 text-xl font-bold tabular-nums">{val}</p>
               </div>
             ))}
             {stats.avgRating != null && (
               <div className="col-span-2 rounded-xl border border-border bg-surface px-3 py-3 sm:col-span-4">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
-                  Elo moyen
-                </p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted">Elo moyen</p>
                 <p className="mt-1 text-xl font-bold tabular-nums">{stats.avgRating}</p>
               </div>
             )}
@@ -224,10 +214,7 @@ export function TournamentAnalysis({
           </div>
           <ul className="divide-y divide-border">
             {stats.openings.map(([eco, count]) => (
-              <li
-                key={eco}
-                className="flex items-center justify-between px-4 py-2.5 sm:px-5"
-              >
+              <li key={eco} className="flex items-center justify-between px-4 py-2.5 sm:px-5">
                 <span className="font-mono text-sm font-medium">{eco}</span>
                 <span className="text-sm tabular-nums text-muted">{count}×</span>
               </li>
@@ -244,27 +231,26 @@ export function TournamentAnalysis({
           </div>
           <ul className="divide-y divide-border">
             {stats.upsets.map((g, i) => (
-              <li
-                key={i}
-                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-5"
-              >
-                <div className="min-w-0 text-sm">
-                  <p className="font-medium text-gray-900">
-                    {isWin(g.whiteResult) ? g.white : g.black}
-                    <span className="mx-1.5 font-normal text-muted">bat</span>
-                    {isWin(g.whiteResult) ? g.black : g.white}
-                  </p>
-                  <p className="text-xs text-muted">
-                    Ronde {g.round} · écart {g.gap} Elo
-                  </p>
+              <li key={i} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-5">
+                <div className="flex min-w-0 items-center gap-2.5 text-sm">
+                  <ChessComAvatar
+                    name={isWin(g.whiteResult) ? g.white : g.black}
+                    chesscom={isWin(g.whiteResult) ? g.white : g.black}
+                    size="sm"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900">
+                      {isWin(g.whiteResult) ? g.white : g.black}
+                      <span className="mx-1.5 font-normal text-muted">bat</span>
+                      {isWin(g.whiteResult) ? g.black : g.white}
+                    </p>
+                    <p className="text-xs text-muted">
+                      Ronde {g.round} · écart {g.gap} Elo
+                    </p>
+                  </div>
                 </div>
                 {g.url ? (
-                  <a
-                    href={g.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-medium text-brand hover:underline"
-                  >
+                  <a href={g.url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-brand hover:underline">
                     Analyser
                   </a>
                 ) : null}
@@ -287,48 +273,38 @@ export function TournamentAnalysis({
               return (
                 <li key={key} className="px-3 py-3 sm:px-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0 text-sm">
-                      <p className="font-medium text-gray-900">
-                        {g.white} <span className="text-muted">–</span> {g.black}
-                      </p>
-                      <p className="text-xs text-muted">
-                        R{g.round}
-                        {g.eco ? ` · ${g.eco}` : ''} ·{' '}
-                        {resultLabel(g.whiteResult)}–{resultLabel(g.blackResult)}
-                      </p>
+                    <div className="flex min-w-0 items-center gap-2 text-sm">
+                      <div className="flex -space-x-1.5">
+                        <ChessComAvatar name={g.white} chesscom={g.white} size="sm" className="ring-2 ring-white" />
+                        <ChessComAvatar name={g.black} chesscom={g.black} size="sm" className="ring-2 ring-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900">
+                          {g.white} <span className="text-muted">–</span> {g.black}
+                        </p>
+                        <p className="text-xs text-muted">
+                          R{g.round}
+                          {g.eco ? ` · ${g.eco}` : ''} ·{' '}
+                          {resultLabel(g.whiteResult)}–{resultLabel(g.blackResult)}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {g.url ? (
-                        <a
-                          href={g.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
-                        >
+                        <a href={g.url} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium hover:border-brand hover:text-brand">
                           <Sparkles className="h-3 w-3" /> Analyser
                         </a>
                       ) : null}
                       {g.pgn ? (
                         <>
-                          <button
-                            type="button"
-                            onClick={() => void copyPgn(key, g.pgn!)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium hover:border-brand hover:text-brand"
-                          >
-                            <Copy className="h-3 w-3" />{' '}
-                            {copiedKey === key ? 'Copié' : 'PGN'}
+                          <button type="button" onClick={() => void copyPgn(key, g.pgn!)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium hover:border-brand hover:text-brand">
+                            <Copy className="h-3 w-3" /> {copiedKey === key ? 'Copié' : 'PGN'}
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => setExpandedPgn(open ? null : key)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium"
-                          >
-                            {open ? (
-                              <ChevronUp className="h-3 w-3" />
-                            ) : (
-                              <ChevronDown className="h-3 w-3" />
-                            )}{' '}
-                            Voir
+                          <button type="button" onClick={() => setExpandedPgn(open ? null : key)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium">
+                            {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Voir
                           </button>
                         </>
                       ) : null}
